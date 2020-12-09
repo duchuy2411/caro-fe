@@ -1,8 +1,9 @@
 import logo from './logo.svg';
 import './App.css';
 import io from "socket.io-client"
-import axios from "axios"
-import {useState, useEffect} from "react"
+import axios from "axios";
+import {useState, useEffect} from "react";
+import Admin from './pages/Admin/index';
 
 // const socket = io('https://caro-be.herokuapp.com');
 const socket = io('http://localhost:8000');
@@ -29,7 +30,7 @@ function App() {
 
   return (
     <div className="App">
-      
+        <Admin/>
     </div>
   );
 }
