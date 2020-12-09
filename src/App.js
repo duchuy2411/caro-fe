@@ -20,6 +20,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+// const socket = io('https://caro-be.herokuapp.com');
 const socket = io('http://localhost:8000');
 
 function App() {
