@@ -31,21 +31,33 @@ const socket = io('http://localhost:8000');
 function User() {
     const classes = useStyles();
 
-    const [currentUsername, setCurrentUsername] = useState("abc");
+    let [currentUser, setCurrentUser] = useState(null);
     let [onlineUserList, setOnlineUserList] = useState([]);
 
     let [openUserInfoDialog, setOpenUserInfoDialog] = useState(false);
 
     useEffect(() => {
-        // async function fetchData() {
-        //   try {
-        //     const data = await axios.get("http://localhost:8000/api/user");
-        //     console.log(data);
-        //   } catch (error) {
-        //     console.log(error);
-        //   }
-        // }
-        // fetchData();
+        async function fetchData() {
+            try {
+              const data = await axios.get("http://localhost:8000/api/users/login");
+              
+              if (data.data.data.user) {
+                  sessionStorage.setItem('currentuser', JSON.stringify(data.data.data.user));
+                  setCurrentUser(data.data.data.user);
+                  //socket.emit('login', { iduser: currentUser._id, displayname: currentUser.displayname });
+                  
+                  
+              }
+              //alert(data.data.data.user);
+              //alert(sessionStorage.getItem('currentuser'));
+              //alert(data.data.message);
+              
+              
+            } catch (error) {
+              console.log(error);
+            }
+        }
+        fetchData();
         // socket.emit("hello-server", "vì một câu nói");
 
         // setOnlineUserList([{ iduser: "1", displayname: "Player 1" },
@@ -55,18 +67,18 @@ function User() {
         // { iduser: "5", displayname: "Player 5" },
         // { iduser: "6", displayname: "Player 6" }]);
 
-        socket.emit('login', { iduser: "1", displayname: "Player 1" });
+        
         socket.on('list-online', function (listOnline) {
             setOnlineUserList(listOnline);
 
         });
 
-        getCurrentUsername();
+        //getCurrentUsername();
 
     }, [])
 
-    function getCurrentUsername() {
-        sessionStorage.setItem('currentusername', 'abc');
+    //function getCurrentUsername() {
+      //  sessionStorage.setItem('currentusername', '');
         // fetch(URL + "/api/currentuser/info")
         //   .then(res => res.text())
         //   .then(res => {  
@@ -74,18 +86,24 @@ function User() {
         //     setCurrentUsername(sessionStorage.getItem('currentusername'));
         //   })
         //   .catch(err => err);
-    }
+    //}
+
+    
 
     async function signOut() {
-        sessionStorage.setItem('currentusername', '');
-        setCurrentUsername('');
+        sessionStorage.setItem('currentuser', '');
+        setCurrentUser(null);
+        //socket.emit('disconnect');
+        const data = await axios.get("http://localhost:8000/api/users/logout");
+        setOnlineUserList(data.data.data.userList);
 
-        socket.emit('disconnect', { iduser: "1", displayname: "Player 1" });
+
+        //socket.emit('disconnect', { iduser: currentUser._id, displayname: currentUser.displayname });
         //fetch(URL + "/api/sign-out");
     }
 
     function checkSignInStatus() {
-        if (currentUsername) {
+        if (currentUser) {
             return (
                 <Redirect to="/play" />
             );
@@ -97,6 +115,7 @@ function User() {
         flexDirection: 'row',
         padding: 0,
     };
+    //checkSignInStatus();
 
     return (
         <body style={{ margin: 0 }}>
@@ -137,17 +156,20 @@ function User() {
                     </Route>
 
                     <Route path={'/play'} >
+                        <Link to={'/'}>
+                            <Button size="large" className={classes.navigationStyle}>HOME</Button>
+                        </Link>
                         <Link to={'/play'}>
                             <Button size="large" className={classes.navigationStyle}>PLAY</Button>
                         </Link>
-                        <Link to={'/profile'} hidden={!currentUsername}>
+                        <Link to={'/profile'} hidden={!currentUser}>
                             <Button size="large" className={classes.navigationStyle}>PROFILE</Button>
                         </Link>
-                        <Link to={'/'} >
+                        <Link to={'/'} hidden={!currentUser}>
                             <Button size="large" className={classes.navigationStyle} onClick={() => signOut()} >SIGN OUT</Button>
                         </Link>
                         <div style={flexContainer}>
-                            <TableList username={currentUsername} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+                            <TableList openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
                             <OnlineUserList onlineUserList={onlineUserList} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
                         </div>
                         <UserInfoDialog openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />

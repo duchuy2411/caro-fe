@@ -2,11 +2,11 @@ import React, { useEffect, useState, useLocation } from 'react';
 import './index.css';
 //import env from '../../env.json';
 //const URL = env.SERVER_DOMAIN_NAME;
-const URL = "https://localhost:8000";
+const URL = "http://localhost:8000";
 
 export default function SignIn() {
 
-    const signInWithUsernameAndPasswordPath = URL + "/login";
+    const signInWithUsernameAndPasswordPath = URL + "/api/users/login";
     const signInWithGooglePath = URL + "/auth/google";
     const signInWithFacebookPath = URL + "/auth/facebook";
     useEffect(() => {

@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import io from "socket.io-client"
+//import io from "socket.io-client"
 import axios from "axios"
 import {useState, useEffect} from "react"
 import { makeStyles } from '@material-ui/core/styles';
@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // const socket = io('https://caro-be.herokuapp.com');
-const socket = io('http://localhost:8000');
+//const socket = io('http://localhost:8000');
 
 function App() {
   const classes = useStyles();
@@ -46,13 +46,11 @@ function App() {
   return (
       <React.Fragment>
         <Switch>
-          <Route exact path="/">
-            <div className="App">
-              <User />
-            </div>
-          </Route>
           <Route exact path="/admin">
             <Admin />
+          </Route>
+          <Route path="/*">
+            <User />
           </Route>
         </Switch>
       </React.Fragment>

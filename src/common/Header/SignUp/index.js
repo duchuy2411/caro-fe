@@ -2,11 +2,11 @@ import React, { useEffect, useState, useLocation } from 'react';
 import './index.css';
 //import env from '../../env.json';
 //const URL = env.SERVER_DOMAIN_NAME;
-const URL = "";
+const URL = "http://localhost:8000";
 
 export default function SignUp() {
 
-    const path = URL + "/sign-up";
+    const path = URL + "/api/users";
     useEffect(() => {
         //fetch(URL + "/sign-up");
     }, []);
@@ -18,7 +18,7 @@ export default function SignUp() {
                 <input type="text" name="username" placeholder="Username" />
                 <input type="password" name="password" placeholder="Password" />
                 <input type="password" name="retypePassword" placeholder="Retype password" />
-                <input type="text" name="displayName" placeholder="Display name" />
+                <input type="text" name="displayname" placeholder="Display name" />
 
                 <div style={{marginTop: 10, marginBottom: 10}}>
                     <label class="radio">

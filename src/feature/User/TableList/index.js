@@ -52,7 +52,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function TableList({ username, openUserInfoDialog, setOpenUserInfoDialog }) {
+export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog }) {
     const classes = useStyles();
     let [tableList, setTableList] = useState([]);
     let [selectedTableTitleToView, setSelectedTableTitleToView] = useState("");
@@ -65,7 +65,7 @@ export default function TableList({ username, openUserInfoDialog, setOpenUserInf
     //     description: ""
     // });
 
-    function getTableList(username) {
+    function getTableList() {
         setTableList([{ id: "1", title: "Tên bàn 1", description: "Đang chơi" },
         { id: "2", title: "Tên bàn 2", description: "Đang chờ" },
         { id: "3", title: "Tên bàn 3", description: "Đang chơi" },
@@ -79,8 +79,8 @@ export default function TableList({ username, openUserInfoDialog, setOpenUserInf
     }
 
     useEffect(() => {
-        getTableList(username);
-    }, [username]);
+        getTableList();
+    }, []);
 
     function renderTableItem(tableId, title, description) {
         const path = '/play/' + tableId;
