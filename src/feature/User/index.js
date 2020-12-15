@@ -70,7 +70,6 @@ function User() {
         
         socket.on('list-online', function (listOnline) {
             setOnlineUserList(listOnline);
-
         });
 
         //getCurrentUsername();
@@ -93,9 +92,14 @@ function User() {
     async function signOut() {
         sessionStorage.setItem('currentuser', '');
         setCurrentUser(null);
-        //socket.emit('disconnect');
-        const data = await axios.get("http://localhost:8000/api/users/logout");
-        setOnlineUserList(data.data.data.userList);
+        
+        //const data = await axios.get("http://localhost:8000/api/users/logout");
+        //setOnlineUserList(data.data.data.userList);
+
+        socket.emit('disconnect', null);
+        socket.on('list-online', function (listOnline) {
+            setOnlineUserList(listOnline);
+        });
 
 
         //socket.emit('disconnect', { iduser: currentUser._id, displayname: currentUser.displayname });
