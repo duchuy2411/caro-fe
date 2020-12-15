@@ -11,7 +11,7 @@ import GridListTile from '@material-ui/core/GridListTile';
 import Typography from '@material-ui/core/Typography';
 import TableItem from './TableItem/index';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
-
+import SearchIcon from '@material-ui/icons/Search';
 
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -21,6 +21,9 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 import Avatar from '@material-ui/core/Avatar';
+
+import axios from '../../../axios';
+import history from "../../../history";
 
 import {
     BrowserRouter as Router,
@@ -52,12 +55,14 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog }) {
+
+export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog}) {
     const classes = useStyles();
     let [tableList, setTableList] = useState([]);
     let [selectedTableTitleToView, setSelectedTableTitleToView] = useState("");
     let [openCreateTableDialog, setOpenCreateTableDialog] = useState(false);
-    
+    const [openFindRoom, setOpenFindRoom] = useState(false);
+    const [notFound, setNoFound] = useState(false);
 
     // let [selectedBoardToEditOrDelete, setSelectedBoardToEditOrDelete] = useState({
     //     id: 0,
@@ -142,6 +147,30 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog })
         //     .then(res => res.json())
         //     .then(res => { if (res) alert('Add new board successfully'); else alert('Add new board unsuccessfully') })
         //     .catch(err => err);
+        axios.post('boards', {title: newTitle, description: newDescription})
+            .then(res => {
+                console.log(res);
+                history.push('/play/' + res.data.data.code);
+                window.location.reload();
+                // setTableList([...tableList, {id: res.data.data.code, title: res.data.data.title, description: res.data.data.description}]);
+            })
+            .catch(err => {
+                console.log(err)
+            })
+    }
+
+    function findRoom() {
+        const idRoom = document.getElementById('id-room').value;
+        axios.get('boards/' + idRoom)
+            .then(res => {
+                setOpenFindRoom(false);
+                history.push('/play/' + idRoom);
+                window.location.reload();
+            })
+            .catch(err => {
+                console.log(err);
+                setNoFound(true);
+            })
     }
 
     // function updateSelectedBoardToEditOrDelete(e) {
@@ -187,9 +216,16 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog })
                             Danh sách bàn chơi
                         </Typography>
 
+                        <Button onClick={() => {setOpenFindRoom(true); setNoFound(false);}}>
+                            <SearchIcon style={{width: 50, height: 50, color: 'red'}}/>
+                            <Typography>
+                                Tìm phòng
+                            </Typography>
+                        </Button>
+
                         <GridList cellHeight={180} className={classes.gridList} cols={5}>
                             <GridListTile key="Subheader" >
-                                <Card variant="outlined" style={{ width: 150, height: 150, justifyContent: 'center' }}>
+                                <Card variant="outlined" style={{ width: 150, height: 150, justifyContent: 'red' }}>
                                     
                                     <CardActions style={{ justifyContent: 'center' }} >
                                         <Button size="small" onClick={() => setOpenCreateTableDialog(true)}>
@@ -233,6 +269,25 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog })
                     </Button>
                     <Button onClick={() => { setOpenCreateTableDialog(false); createNewTable(); }} color="primary">
                         Add
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={openFindRoom} onClose={() => setOpenFindRoom(false)} aria-labelledby="form-dialog-title">
+                <DialogTitle>Tìm bàn</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Nhập id để tìm bàn
+                    </DialogContentText>
+
+                    <TextField error={notFound} helperText='Phòng không tồn tại' autoFocus margin="dense" id="id-room" label="ID" fullWidth />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => { setOpenFindRoom(false); }} color="danger">
+                        Cancel
+                    </Button>
+                    <Button onClick={() => {  findRoom(); }} color="primary">
+                        Search
                     </Button>
                 </DialogActions>
             </Dialog>

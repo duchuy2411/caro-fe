@@ -14,7 +14,7 @@ import {
   Link,
   Redirect
 } from "react-router-dom";
-import Admin from './pages/Admin/index';
+import Admin from './feature/Admin';
 
 const useStyles = makeStyles((theme) => ({
   navigationStyle: {
