@@ -1,10 +1,10 @@
 import React from 'react';
 import Square from './Square/index.js';
 
-let numRow = 15;
-let numCol = 15;
+// let numRow = 15;
+// let numCol = 15;
 
-function Board({squares, onClick, winLine}) {
+function Board({squares, onClick, winLine, numRow, numCol}) {
     const rows = [];
     for (let row = 0; row < numRow; row++)
       rows.push(renderRow(row));
@@ -15,12 +15,20 @@ function Board({squares, onClick, winLine}) {
     );
     function renderSquare(i) {
     //let isWin = false;
-    let color;
-      if (squares[i] == 'X')
-        color = 'red';
-      else
-        color = 'green';
-    //   for (var idx = 0; idx < winLine.length; idx++) {
+    let color, isWinLine = false;
+    if (winLine) {
+        winLine.forEach(index => {
+            if (i === index) {
+                isWinLine = true;
+            }
+        });
+    }
+        if (squares[i] === 'X')
+            color = 'red';
+        else
+            color = 'green';
+
+        //   for (var idx = 0; idx < winLine.length; idx++) {
     //     if (i == winLine[idx]) {
     //       isWin = true;
     //       break;
@@ -33,6 +41,7 @@ function Board({squares, onClick, winLine}) {
           value={squares[i]}
           onClick={() => onClick(i)}
           color={color}
+          isWinLine={isWinLine}
         />
       );
     }

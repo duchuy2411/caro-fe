@@ -19,10 +19,14 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 
 import Avatar from '@material-ui/core/Avatar';
 
 import axios from '../../../axios';
+import socketio from 'socket.io-client';
 import history from "../../../history";
 
 import {
@@ -61,6 +65,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog}) 
     let [tableList, setTableList] = useState([]);
     let [selectedTableTitleToView, setSelectedTableTitleToView] = useState("");
     let [openCreateTableDialog, setOpenCreateTableDialog] = useState(false);
+    const [dimension, setDimension] = useState(10);
     const [openFindRoom, setOpenFindRoom] = useState(false);
     const [notFound, setNoFound] = useState(false);
 
@@ -70,22 +75,28 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog}) 
     //     description: ""
     // });
 
-    function getTableList() {
-        setTableList([{ id: "1", title: "Tên bàn 1", description: "Đang chơi" },
-        { id: "2", title: "Tên bàn 2", description: "Đang chờ" },
-        { id: "3", title: "Tên bàn 3", description: "Đang chơi" },
-        { id: "4", title: "Tên bàn 4", description: "Đang chơi" },
-        { id: "5", title: "Tên bàn 5", description: "Đang chờ" },
-        { id: "6", title: "Tên bàn 6", description: "Đang chơi" }]);
-        // fetch(URL + "/api/board/username/" + username)
-        //     .then(res => res.json())
-        //     .then(res => setTableList(res))
-        //     .catch(err => err);
-    }
-
     useEffect(() => {
-        getTableList();
+        axios.get('boards')
+            .then(res => {
+                setTableList(res.data.data);
+            })
+            .catch(err => {
+                console.log(err);
+            })
     }, []);
+
+    // function getTableList() {
+    //     setTableList([{ id: "1", title: "Tên bàn 1", description: "Đang chơi" },
+    //     { id: "2", title: "Tên bàn 2", description: "Đang chờ" },
+    //     { id: "3", title: "Tên bàn 3", description: "Đang chơi" },
+    //     { id: "4", title: "Tên bàn 4", description: "Đang chơi" },
+    //     { id: "5", title: "Tên bàn 5", description: "Đang chờ" },
+    //     { id: "6", title: "Tên bàn 6", description: "Đang chơi" }]);
+    //     // fetch(URL + "/api/board/username/" + username)
+    //     //     .then(res => res.json())
+    //     //     .then(res => setTableList(res))
+    //     //     .catch(err => err);
+    // }
 
     function renderTableItem(tableId, title, description) {
         const path = '/play/' + tableId;
@@ -93,7 +104,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog}) 
             <GridListTile key={tableId}>
                 <Card variant="outlined" style={{ width: 150, height: 150, justifyContent: 'center' }}>
                     <CardContent>
-                        <Link to={path}>
+                        <Link to={{pathname: path, state: {idBoard: tableId}}}>
                             <Avatar variant="square" className={classes.tableImage} src='/img/table.png' ></Avatar>
                         </Link>
                         <Typography className={classes.title} variant="h5" component="h2" gutterBottom>
@@ -135,7 +146,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog}) 
 
     function renderTableList() {
         let result = [];
-        tableList.map((tableItem) => result.push(renderTableItem(tableItem.id, tableItem.title, tableItem.description)));
+        tableList.map((tableItem) => result.push(renderTableItem(tableItem.code, tableItem.title, tableItem.description)));
         return result;
     }
 
@@ -147,16 +158,29 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog}) 
         //     .then(res => res.json())
         //     .then(res => { if (res) alert('Add new board successfully'); else alert('Add new board unsuccessfully') })
         //     .catch(err => err);
-        axios.post('boards', {title: newTitle, description: newDescription})
+        axios.post('boards', {
+            user: JSON.parse(sessionStorage.currentuser)._id,
+            title: newTitle,
+            description: newDescription,
+            width: dimension,
+            height: dimension,
+            })
             .then(res => {
                 console.log(res);
-                history.push('/play/' + res.data.data.code);
-                window.location.reload();
+                history.push({
+                    pathname: '/play/' + res.data.data.code,
+                    state: {idBoard: res.data.data.code}
+                });
+                // window.location.reload();
                 // setTableList([...tableList, {id: res.data.data.code, title: res.data.data.title, description: res.data.data.description}]);
             })
             .catch(err => {
                 console.log(err)
             })
+    }
+
+    function changeDimension(e) {
+        setDimension(e.target.value);
     }
 
     function findRoom() {
@@ -262,6 +286,17 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog}) 
 
                     <TextField autoFocus margin="dense" id="title-add" label="Title" fullWidth />
                     <TextField autoFocus margin="dense" id="description-add" label="Description" fullWidth />
+                    <InputLabel id="demo-simple-select-label" style={{marginTop: '20px'}}>Kích thước (n x x)</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-label"
+                        id="dimension-add"
+                        value={dimension}
+                        onChange={changeDimension}
+                    >
+                        <MenuItem value={10}>10</MenuItem>
+                        <MenuItem value={15}>15</MenuItem>
+                        <MenuItem value={20}>20</MenuItem>
+                    </Select>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => { setOpenCreateTableDialog(false); }} color="primary">
