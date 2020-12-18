@@ -132,7 +132,6 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
         }
     }, [socket])
 
-
     useEffect(() => {
         boardId = window.location.pathname.split('/')[2];
         axios.get('boards/'+boardId)
@@ -147,6 +146,8 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
         //     socket.emit('join-room', [1,2]);
         // }
     }, [selectedBoardTitle]);
+
+    
 
     function handlePlayGame(squares) {
         socket.emit('play-caro', squares);

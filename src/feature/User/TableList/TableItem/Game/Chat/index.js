@@ -51,7 +51,7 @@ export default function Chat({socket}) {
   useEffect(() => {
     getItemChatList();
     
-  }, [])
+  }, [itemChatList.length])
 
   // Lắng nge khi trong room có người chat
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function Chat({socket}) {
           // // cập nhật giao diện
           // setArrayMessage(newArr);
   
-          getItemChatList();
+          //getItemChatList();
           let newItemChatList = itemChatList.slice();
           let newItemChatContent = data.fromDisplayName + ": " + data.content;
           newItemChatList.push(renderItemChat(newItemChatContent));
@@ -101,11 +101,12 @@ export default function Chat({socket}) {
         if (socket) {
             socket.emit('send-message', {fromUsername: currentUser.username, fromDisplayName: currentUser.displayname, fromBoardId: idRoom, content: content});
         }
-        getItemChatList();
+        //getItemChatList();
         let newItemChatList = itemChatList.slice();
         let newItemChatContent = currentUser.displayname + ": " + content;
         newItemChatList.push(renderItemChat(newItemChatContent));
         setItemChatList(newItemChatList);
+
     }
     // socket.on('update-area-chat', function (data) {
     //     getItemChatList();

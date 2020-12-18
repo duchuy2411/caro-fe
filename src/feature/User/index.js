@@ -93,10 +93,11 @@ function User() {
     
 
     async function signOut() {
+        
+        
+        const data = await axios.get("http://localhost:8000/api/users/logout/" + currentUser._id);
         sessionStorage.setItem('currentuser', '');
         setCurrentUser(null);
-        
-        const data = await axios.get("http://localhost:8000/api/users/logout");
         //setOnlineUserList(data.data.data.userList);
 
         //socket.emit('disconnect', null);
