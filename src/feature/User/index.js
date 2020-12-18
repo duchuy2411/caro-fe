@@ -39,17 +39,19 @@ function User() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const api = await axios.get("http://localhost:8000/api/users");
-                const data = api.data.data;
-                sessionStorage.setItem('currentuser', JSON.stringify(data.user));
-                setCurrentUser(data.user);
-                if (data.user) {
+                let currentUsername = document.cookie.split('=')[1];
+                if (currentUsername) {
+                    const api = await axios.get("http://localhost:8000/api/users/" + currentUsername);
+                    const data = api.data.data;
+                
                     // Kết nối socket truyền vào iduser : _id và displayname là displayname
                     const io = socketio('http://localhost:8000',
                     { query: `iduser=${data.user._id}&displayname=${data.user.displayname}`} );
 
                     // Gán state socket = io để gọi lại ở useEffect bên dưới
                     setSocket(io);
+                    sessionStorage.setItem('currentuser', JSON.stringify(data.user));
+                    setCurrentUser(data.user);
                 }
               
             } catch (error) {
@@ -94,10 +96,11 @@ function User() {
 
     async function signOut() {
         
-        
+        document.cookie = 'currentUsername=';
         const data = await axios.get("http://localhost:8000/api/users/logout/" + currentUser._id);
         sessionStorage.setItem('currentuser', '');
         setCurrentUser(null);
+        
         //setOnlineUserList(data.data.data.userList);
 
         //socket.emit('disconnect', null);
