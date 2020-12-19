@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-const socket = io('http://localhost:8000');
+//const socket = io('http://localhost:8000');
 
 export default function OnlineUserList({onlineUserList, openUserInfoDialog, setOpenUserInfoDialog}) {
     const classes = useStyles();

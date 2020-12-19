@@ -60,7 +60,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog}) {
+export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, socket}) {
     const classes = useStyles();
     let [tableList, setTableList] = useState([]);
     let [selectedTableTitleToView, setSelectedTableTitleToView] = useState("");
@@ -271,7 +271,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog}) 
 
                     </Route>
                     <Route path={`/play/:tableId`} >
-                        <TableItem selectedTableTitleToView={selectedTableTitleToView} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog}/>
+                        <TableItem selectedTableTitleToView={selectedTableTitleToView} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} socket={socket}/>
                     </Route>
 
                 </Switch>

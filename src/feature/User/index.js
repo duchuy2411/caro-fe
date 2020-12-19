@@ -1,4 +1,4 @@
-import io from "socket.io-client"
+import socketio from "socket.io-client"
 import axios from "axios"
 import { useState, useEffect } from "react"
 import { makeStyles } from '@material-ui/core/styles';
@@ -26,55 +26,60 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-const socket = io('http://localhost:8000');
 
 function User() {
     const classes = useStyles();
 
+    const [socket, setSocket] = useState();
     let [currentUser, setCurrentUser] = useState(null);
     let [onlineUserList, setOnlineUserList] = useState([]);
 
     let [openUserInfoDialog, setOpenUserInfoDialog] = useState(false);
-
+    
     useEffect(() => {
         async function fetchData() {
             try {
-              const data = await axios.get("http://localhost:8000/api/users/login");
-              
-              if (data.data.data.user) {
-                  sessionStorage.setItem('currentuser', JSON.stringify(data.data.data.user));
-                  setCurrentUser(data.data.data.user);
-                  //socket.emit('login', { iduser: currentUser._id, displayname: currentUser.displayname });
-                  
-                  
-              }
-              //alert(data.data.data.user);
-              //alert(sessionStorage.getItem('currentuser'));
-              //alert(data.data.message);
-              
+                let currentUsername = document.cookie.split('=')[1];
+                if (currentUsername) {
+                    const api = await axios.get("http://localhost:8000/api/users/" + currentUsername);
+                    const data = api.data.data;
+                
+                    // Kết nối socket truyền vào iduser : _id và displayname là displayname
+                    const io = socketio('http://localhost:8000',
+                    { query: `iduser=${data.user._id}&displayname=${data.user.displayname}`} );
+
+                    // Gán state socket = io để gọi lại ở useEffect bên dưới
+                    setSocket(io);
+                    sessionStorage.setItem('currentuser', JSON.stringify(data.user));
+                    setCurrentUser(data.user);
+                }
               
             } catch (error) {
               console.log(error);
             }
         }
         fetchData();
-        // socket.emit("hello-server", "vì một câu nói");
-
-        // setOnlineUserList([{ iduser: "1", displayname: "Player 1" },
-        // { iduser: "2", displayname: "Player 2" },
-        // { iduser: "3", displayname: "Player 3" },
-        // { iduser: "4", displayname: "Player 4" },
-        // { iduser: "5", displayname: "Player 5" },
-        // { iduser: "6", displayname: "Player 6" }]);
-
-        
-        socket.on('list-online', function (listOnline) {
-            setOnlineUserList(listOnline);
-        });
-
-        //getCurrentUsername();
-
     }, [])
+
+    // luôn lắng nghe khi có người khác đăng nhập
+    // trả về 1 mảng đang online trong database
+    useEffect(() => {
+
+        if (socket) {
+            socket.on('list-online', function (listOnline) {
+                setOnlineUserList(listOnline);
+            });
+        }
+
+        return () => {
+            if (socket) {
+                // nghe xong sự kiện list-online thì xóa
+                socket.removeAllListeners('list-online', () => { })
+            }
+        }
+    }, [socket]);
+
+
 
     //function getCurrentUsername() {
       //  sessionStorage.setItem('currentusername', '');
@@ -90,16 +95,20 @@ function User() {
     
 
     async function signOut() {
+        
+        document.cookie = 'currentUsername=';
+        const data = await axios.get("http://localhost:8000/api/users/logout/" + currentUser._id);
         sessionStorage.setItem('currentuser', '');
         setCurrentUser(null);
         
-        //const data = await axios.get("http://localhost:8000/api/users/logout");
         //setOnlineUserList(data.data.data.userList);
 
-        socket.emit('disconnect', null);
-        socket.on('list-online', function (listOnline) {
-            setOnlineUserList(listOnline);
-        });
+        //socket.emit('disconnect', null);
+        socket.disconnect();
+        setOnlineUserList([]);
+        // socket.on('disconnected', function (listOnline) {
+        //     setOnlineUserList(listOnline);
+        // });
 
 
         //socket.emit('disconnect', { iduser: currentUser._id, displayname: currentUser.displayname });
@@ -173,7 +182,7 @@ function User() {
                             <Button size="large" className={classes.navigationStyle} onClick={() => signOut()} >SIGN OUT</Button>
                         </Link>
                         <div style={flexContainer}>
-                            <TableList openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+                            <TableList openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} socket={socket}/>
                             <OnlineUserList onlineUserList={onlineUserList} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
                         </div>
                         <UserInfoDialog openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />

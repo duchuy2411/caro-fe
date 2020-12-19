@@ -74,9 +74,8 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOpenUserInfoDialog}) {
+export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOpenUserInfoDialog, socket}) {
     const classes = useStyles();
-    const [socket, setSocket] = useState();
     const [board, setBoard] = useState();
     const [openHistory, setOpenHistory] = useState(false);
     const [newSquare, setNewSquare] = useState(Array(100).fill(null));
@@ -95,9 +94,9 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
 
     useEffect(() => {
         setReplay(true);
-        const io = socketio('http://localhost:8000',
-            { query: `iduser=${JSON.parse(sessionStorage.currentuser)._id}&displayname=${JSON.parse(sessionStorage.currentuser).displayname}`} );
-        setSocket(io);
+        // const io = socketio('http://localhost:8000',
+        //     { query: `iduser=${JSON.parse(sessionStorage.currentuser)._id}&displayname=${JSON.parse(sessionStorage.currentuser).displayname}`} );
+        // setSocket(io);
     }, [])
 
     useEffect(() => {
@@ -133,7 +132,6 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
         }
     }, [socket])
 
-
     useEffect(() => {
         boardId = window.location.pathname.split('/')[2];
         axios.get('boards/'+boardId)
@@ -148,6 +146,8 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
         //     socket.emit('join-room', [1,2]);
         // }
     }, [selectedBoardTitle]);
+
+    
 
     function handlePlayGame(squares) {
         socket.emit('play-caro', squares);
@@ -248,7 +248,7 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
                     </div>
                 </div>
                 <div>
-                    <Chat/>
+                    <Chat socket={socket}/>
                 </div>
             </div>
 
