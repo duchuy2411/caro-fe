@@ -1,5 +1,5 @@
 import React from 'react';
-import Square from './Square/index.js';
+import Square from './Square';
 
 // let numRow = 15;
 // let numCol = 15;

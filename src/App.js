@@ -4,7 +4,7 @@ import './App.css';
 import axios from "axios"
 import {useState, useEffect} from "react"
 import { makeStyles } from '@material-ui/core/styles';
-import User from './feature/User';
+import User from './pages/User';
 import React from 'react';
 
 import {
@@ -14,7 +14,7 @@ import {
   Link,
   Redirect
 } from "react-router-dom";
-import Admin from './feature/Admin';
+import Admin from './pages/Admin';
 
 const useStyles = makeStyles((theme) => ({
   navigationStyle: {

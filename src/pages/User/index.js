@@ -2,9 +2,9 @@ import socketio from "socket.io-client"
 import axios from "axios"
 import { useState, useEffect } from "react"
 import { makeStyles } from '@material-ui/core/styles';
-import SignIn from '../../common/Header/SignIn';
-import SignUp from '../../common/Header/SignUp';
-import Profile from '../../common/Header/Profile';
+import SignIn from '../../components/common/Header/SignIn';
+import SignUp from '../../components/common/Header/SignUp';
+import Profile from '../../components/common/Header/Profile';
 import TableList from './TableList';
 import OnlineUserList from './OnlineUserList';
 import UserInfoDialog from './UserInfoDialog';

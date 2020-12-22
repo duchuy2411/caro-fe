@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useLocation } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
-import Game from './Game/index.js';
+import Game from '../../Game/index.js';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -23,10 +23,10 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import PlayingUserInfo from './Game/PlayingUserInfo/index.js';
-import Audience from './Game/Audience/index.js';
-import Chat from './Game/Chat/index.js';
-import axios from "../../../../axios";
+import PlayingUserInfo from '../../../../components/PlayingUserInfo/index.js';
+import Audience from '../../../../components/Audience/index.js';
+import Chat from '../../../../components/Chat/index.js';
+import axios from "../../../../utils/axios";
 import {Grid} from "@material-ui/core";
 import socketio from 'socket.io-client';
 

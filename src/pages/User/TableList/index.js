@@ -25,9 +25,9 @@ import MenuItem from '@material-ui/core/MenuItem';
 
 import Avatar from '@material-ui/core/Avatar';
 
-import axios from '../../../axios';
+import axios from '../../../utils/axios';
 import socketio from 'socket.io-client';
-import history from "../../../history";
+import history from "../../../utils/history";
 
 import {
     BrowserRouter as Router,
