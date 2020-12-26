@@ -11,7 +11,7 @@ export default function SignUp() {
         //fetch(URL + "/sign-up");
     }, []);
     return (
-        <div id="login-box" style={{background: 'lavender'}}>
+        <div id="login-box" style={{background: 'lavender', marginBottom: '0px'}}>
             <form action={path} method="post" class="left">
                 <h1>SIGN UP</h1>
 

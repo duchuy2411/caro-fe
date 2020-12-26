@@ -19,19 +19,15 @@ export default function Profile() {
     const [currentUser, setCurrentUser] = useState(JSON.parse(sessionStorage.getItem('currentuser')));
     let [username, setUsername] = useState(currentUser.username);
     let [displayName, setDisplayName] = useState(currentUser.displayname);
-    let [sex, setSex] = useState("");
-    let [phoneNumber, setPhoneNumber] = useState("");
+    let [joinDate, setJoinDate] = useState("01/01/2021");
+    let [matchStatistic, setMatchStatistic] = useState("Đã chơi 10, thắng 5, hòa 4, thua 1, tỷ lệ thắng 80%");
+    let [level, setLevel] = useState("Kỳ thánh");
     let [email, setEmail] = useState(currentUser.email);
     let [password, setPassword] = useState(currentUser.password);
 
-    //let [userList, setUserList] = useState([]);
-    // let [username, setUsername] = useState(sessionStorage.getItem('currentusername'));
-    // let [displayName, setDisplayName] = useState("");
-    // let [sex, setSex] = useState("");
-    // let [phoneNumber, setPhoneNumber] = useState("");
-    // let [email, setEmail] = useState("");
-    // let password;
+    
     let inputMale, inputFemale;
+    const inputSize = 250;
     // function getUserList(username) {
     //     setUserList([{displayName: "player 1", _password: "123", sex: "Nữ", phonenumber: "0123456789", email: "dth@gmail.com"}]);
     //     // fetch(URL + "/api/user/username/" + username)
@@ -46,63 +42,41 @@ export default function Profile() {
     const path = URL + "/update-profile";
     useEffect(() => {
         //getUserList(username);
-    }, [username, displayName, sex, phoneNumber, email]);
-    // userList.map((userItem) => {
-    //     password = userItem._password;
-    //     displayName = userItem.displayName;
-    //     sex = userItem.sex;
-    //     phoneNumber = userItem.phonenumber;
-    //     email = userItem.email;
-        if (sex == 'Nam') {
-            inputMale = <input type="radio" name="sex" value="Nam" defaultChecked="true"/>;
-            inputFemale = <input type="radio" name="sex" value="Nữ"/>;
-        }
-        else if (sex == 'Nữ') {
-            inputMale = <input type="radio" name="sex" value="Nam"/>;
-            inputFemale = <input type="radio" name="sex" value="Nữ" defaultChecked="true"/>;
-        }
-        else {
-            inputMale = <input type="radio" name="sex" value="Nam"/>;
-            inputFemale = <input type="radio" name="sex" value="Nữ"/>;
-        }
-    //});
+    }, [username, displayName, joinDate, matchStatistic, level, email]);
+    
+    
     return (
-        <div id="login-box" style={{background: 'lavender', height: 650}}>
-            <form action={path} method="post" class="left" style={{margin: 120}}>
-                <h1 style={{textAlign: 'center'}}>PROFILE</h1>
+        <div id="login-box" style={{background: 'lavender', marginBottom: '0px', height: '600px'}}>
+            <form action={path} method="post" class="left" style={{marginLeft: '50px'}}>
+                <h1 style={{alignmentBaseline: 'central'}}>PROFILE</h1>
                 <div className={classes.infoLineStyle}>
                     <label className={classes.labelStyle}>Username</label>
-                    <input  type="text" name="username" value={username}/>
+                    <input type="text" name="username" value={username} size={inputSize} style={{marginRight: '10px'}}/>
                 </div>
                 <div className={classes.infoLineStyle}>
                     <label className={classes.labelStyle}>DisplayName</label>
-                    <input type="text" name="displayName" defaultValue={displayName} />
+                    <input type="text" name="displayName" defaultValue={displayName} size={inputSize}/>
                 </div>
                 <div className={classes.infoLineStyle}>
-                    <label className={classes.labelStyle}>Sex</label>
-                    <div style={{marginTop: 5, marginBottom: 15}}>
-                        <label class="radio">
-                            {inputMale}
-                                Nam
-                        </label>
-                        <label class="radio" style={{marginLeft: 80}}>
-                            {inputFemale}
-                                Nữ
-                        </label>
-                    </div>
+                    <label className={classes.labelStyle}>JoinDate</label>
+                    <input type="text" name="joinDate" defaultValue={joinDate} size={inputSize} disabled="true"/>
                 </div>
                 <div className={classes.infoLineStyle}>
-                    <label className={classes.labelStyle}>Phone</label>
-                    <input type="text" name="phoneNumber" defaultValue={phoneNumber} />
+                    <label className={classes.labelStyle}>Statistic</label>
+                    <input type="text" name="matchStatistic" defaultValue={matchStatistic} size={inputSize} disabled="true"/>
+                </div>
+                <div className={classes.infoLineStyle}>
+                    <label className={classes.labelStyle}>Level</label>
+                    <input type="text" name="matchStatistic" defaultValue={level} size={inputSize} disabled="true"/>
                 </div>
                 <div className={classes.infoLineStyle}>
                     <label className={classes.labelStyle}>Email</label>
-                    <input type="text" name="email" defaultValue={email} />
+                    <input type="text" name="email" defaultValue={email} size={inputSize}/>
                 </div>
-                <input type="password" name="password" placeholder="Type new password if you need"/>
-                <input type="password" name="retypePassword" placeholder="Retype new password" />
+                <input type="password" name="password" placeholder="Type new password if you need" size={inputSize}/>
+                <input type="password" name="retypePassword" placeholder="Retype new password" size={inputSize}/>
 
-                <input type="submit" name="signup_submit" value="UPDATE PROFILE" />
+                <input type="submit" name="signup_submit" value="UPDATE PROFILE" style={{width: '150px'}}/>
             </form>
         </div>
     );

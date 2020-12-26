@@ -23,14 +23,17 @@ export default function SignIn() {
     }
 
     return (
-        <div id="login-box" style={{background: 'lavender'}}>
+        <div id="login-box" style={{background: 'lavender', marginBottom: '0px'}}>
             <form action={signInWithUsernameAndPasswordPath} method="post" class="left">
                 <h1>SIGN IN</h1>
 
                 <input type="text" name="username" placeholder="Username" />
                 <input type="password" name="password" placeholder="Password" />
                 <input type="submit" name="signup_submit" value="SIGN IN" />
+                <br/><br/>
+                <a style={{color: 'blue'}} href="/forget-password">Quên mật khẩu</a>
             </form>
+            
 
             <div class="right">
                 <span class="loginwith" style={{color: 'black'}}>Sign in with<br />social network</span>

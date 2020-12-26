@@ -27,16 +27,19 @@ export default function UserInfo({ openUserInfoDialog, setOpenUserInfoDialog }) 
             <img src='https://d30y9cdsu7xlg0.cloudfront.net/png/53504-200.png' style={closeImg} onClick={() => { setOpenUserInfoDialog(false); }} />
             </DialogTitle>
             <DialogContent style={{display: 'flex', alignItems: 'flex-end'}}>
-                <Avatar variant="square" src='/img/user-icon.jpg' style={{ width: 70, height: 70, marginRight: 30 }}></Avatar>
+                <Avatar variant="square" src='/img/user-icon.jpg' style={{ width: 90, height: 90, marginRight: 30 }}></Avatar>
                 <div>
                     <Typography className={classes.title} variant="p" component="p" style={{ fontWeight: 'bold' }} gutterBottom>
                         Display name
                     </Typography>
-                    <Typography className={classes.title} style={{ color: 'blue' }} variant="p" component="p" gutterBottom>
-                        Elo: 1600
+                    <Typography className={classes.title} style={{ color: 'black' }} variant="p" component="p" gutterBottom>
+                        Join Date: 01/01/2021
                     </Typography>
-                    <Typography className={classes.title} style={{ color: 'orange' }} variant="p" component="p" gutterBottom>
-                        Coins: 0
+                    <Typography className={classes.title} style={{ color: 'blue' }} variant="p" component="p" gutterBottom>
+                        Statistic: Đã chơi 10, thắng 5, hòa 4, thua 1, tỷ lệ thắng 80%
+                    </Typography>
+                    <Typography className={classes.title} style={{ color: 'red' }} variant="p" component="p" gutterBottom>
+                        Level: Kỳ thánh
                     </Typography>
                 </div>
                 {/* <DialogContentText>

@@ -117,18 +117,18 @@ export default function Chat({socket}) {
     // });
 
     return (
-        <div style={{width: 250, background: 'white'}}>
-            <div style={{height: 50, color: 'red'}}>
+        <div style={{width: 250, backgroundImage: 'url("https://i.gifer.com/3w8M.gif")'}}>
+            <div style={{height: 50, color: 'red', textAlign: 'center'}}>
                 <h1>Chat</h1>
             </div>
-            <div  style={{borderWidth: 'thin', borderStyle: 'solid', borderColor: 'black', height: 400, overflowX: 'hidden'}}>
+            <div  style={{borderWidth: 'thin', borderStyle: 'solid', borderColor: 'black', height: '550px', overflowX: 'hidden'}}>
                 <ul id="chatAreaContent" style={{textAlign: 'left', listStyleType: 'none', display: 'inline'}}>
                     {itemChatList}
                 </ul>
             </div>
-            <div style={{display: 'flex', alignItems: 'flex-end'}}>
+            <div style={{display: 'flex'}}>
                 <textarea id="content" name="content" placeholder="Nhập tin nhắn..." style={{width: 200, marginTop: 5}}>{inp}</textarea>
-                <input type="submit" value="Gửi" style={{width: 35, marginLeft: 5, marginTop: 10}} onClick={(e) => submitChat(e)}></input>
+                <input type="submit" value="Gửi" style={{width: 40, marginLeft: 5, marginTop: 15}} onClick={(e) => submitChat(e)}></input>
             </div>
         </div>
     )

@@ -45,17 +45,24 @@ const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
         maxWidth: 1280,
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: theme.palette.background.paper
     },
     tableImage: {
         width: '100px',
-        height: '100px'
+        height: '100px',
+        marginLeft: 22
+        
     },
     gridList: {
-        width: 900,
-        height: 450,
         alignContent: 'center',
-        marginLeft: 100
+        marginTop: 0
+    },
+    cardStyle: {
+        width: 180, 
+        height: 200, 
+        textAlign: 'center',
+        margin: 5,
+        backgroundImage: 'url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF8tq7J9mu_6vdiGTDAMwY9hC5t_ti2ukrhg&usqp=CAU")'
     }
 }));
 
@@ -102,15 +109,15 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
         const path = '/play/' + tableId;
         return (
             <GridListTile key={tableId}>
-                <Card variant="outlined" style={{ width: 150, height: 150, justifyContent: 'center' }}>
+                <Card variant="outlined" className={classes.cardStyle}>
                     <CardContent>
                         <Link to={{pathname: path, state: {idBoard: tableId}}}>
-                            <Avatar variant="square" className={classes.tableImage} src='/img/table.png' ></Avatar>
+                            <Avatar variant="square" className={classes.tableImage} src='/img/waiting-table.png' ></Avatar>
                         </Link>
-                        <Typography className={classes.title} variant="h5" component="h2" gutterBottom>
+                        <Typography variant="h6" component="h6" gutterBottom style={{color: 'white'}}>
                             {title}
                         </Typography>
-                        <Typography variant="body2" component="p">
+                        <Typography variant="body2" component="p" style={{color: 'white'}}>
                             {description}
                         </Typography>
                     </CardContent>
@@ -171,7 +178,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                     pathname: '/play/' + res.data.data.code,
                     state: {idBoard: res.data.data.code}
                 });
-                // window.location.reload();
+                window.location.reload();
                 // setTableList([...tableList, {id: res.data.data.code, title: res.data.data.title, description: res.data.data.description}]);
             })
             .catch(err => {
@@ -232,11 +239,11 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
     // }
 
     return (
-        <div style={{ margin: 5, width: 950 }}>
+        <div style={{ marginLeft: 60, width: 'fit-content' }}>
             <Router>
                 <Switch>
                     <Route exact path={`/play`}>
-                        <Typography className={classes.title} variant="h5" component="h2" gutterBottom color="primary">
+                        <Typography variant="h5" component="h2" gutterBottom color="primary">
                             Danh sách bàn chơi
                         </Typography>
 
@@ -246,14 +253,18 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                                 Tìm phòng
                             </Typography>
                         </Button>
+                        
+                        <Button style={{backgroundColor: 'blue', color: 'white', marginLeft: '100px'}}>
+                            Chơi nhanh
+                        </Button>
 
-                        <GridList cellHeight={180} className={classes.gridList} cols={5}>
+                        <GridList cellHeight={180} className={classes.gridList} cols={3}>
                             <GridListTile key="Subheader" >
-                                <Card variant="outlined" style={{ width: 150, height: 150, justifyContent: 'red' }}>
+                                <Card variant="outlined" className={classes.cardStyle}>
                                     
                                     <CardActions style={{ justifyContent: 'center' }} >
                                         <Button size="small" onClick={() => setOpenCreateTableDialog(true)}>
-                                            <AddCircleIcon style={{width: 70, height: 70, color: 'violet'}} />
+                                            <AddCircleIcon style={{width: 90, height: 90, color: 'violet'}} />
                                         </Button>
                                     </CardActions>
 
