@@ -6,7 +6,9 @@ import {
 } from '@reduxjs/toolkit'
 import axios from "../../utils/axios";
 
-const boardsAdapter = createEntityAdapter();
+const boardsAdapter = createEntityAdapter({
+    selectId: (board) => board._id
+});
 
 const initialState = boardsAdapter.getInitialState({
     status: 'idle',
@@ -26,7 +28,6 @@ const boardSlice = createSlice({
         [fetchBoards.fulfilled]: (state, action) => {
             state.status = 'succeeded';
             boardsAdapter.upsertMany(state, action.payload);
-            console.log(state.boards);
         },
         [fetchBoards.rejected]: (state, action) => {
             state.status = 'failed';
@@ -39,7 +40,5 @@ export default boardSlice.reducer;
 
 export const {
     selectAll: selectAllBoards,
-    selectById: selectBoardById,
-    selectIds: selectBoardIds
 } = boardsAdapter.getSelectors((state) => state.boards);
 

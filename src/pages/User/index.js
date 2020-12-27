@@ -5,12 +5,21 @@ import { makeStyles } from '@material-ui/core/styles';
 import SignIn from '../../components/common/Header/SignIn';
 import SignUp from '../../components/common/Header/SignUp';
 import Profile from '../../components/common/Header/Profile';
+import ForgetPassword from '../../components/common/Header/SignIn/ForgetPassword';
+import MatchHistory from '../../components/common/Header/MatchHistory';
+import RankingTable from '../../components/common/Header/RankingTable';
 import TableList from './TableList';
 import OnlineUserList from './OnlineUserList';
 import UserInfoDialog from './UserInfoDialog';
 
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
+
+import Helmet from 'react-helmet';
+import Header from '../../components/common/Header/index';
+//import './index.css';
+import useScript from '../../utils/hooks/useScript';
+import Cookies from 'js-cookie';
 
 import {
     BrowserRouter as Router,
@@ -35,27 +44,35 @@ function User() {
     let [onlineUserList, setOnlineUserList] = useState([]);
 
     let [openUserInfoDialog, setOpenUserInfoDialog] = useState(false);
-    
+    let [openOnlineUserList, setOpenOnlineUserList] = useState(true);
+
+    useScript('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js');
+    useScript('https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.bundle.min.js');
+
     useEffect(() => {
         async function fetchData() {
             try {
-                let currentUsername = document.cookie.split('=')[1];
+                //let currentUsername = document.cookie.split('=')[1];
+                let currentUsername = Cookies.get(['currentUsername']);
                 if (currentUsername) {
                     const api = await axios.get("http://localhost:8000/api/users/" + currentUsername);
                     const data = api.data.data;
-                
+                    
                     // Kết nối socket truyền vào iduser : _id và displayname là displayname
                     const io = socketio('http://localhost:8000',
-                    { query: `iduser=${data.user._id}&displayname=${data.user.displayname}`} );
+                        { query: `iduser=${data.user._id}&displayname=${data.user.displayname}` });
 
                     // Gán state socket = io để gọi lại ở useEffect bên dưới
                     setSocket(io);
                     sessionStorage.setItem('currentuser', JSON.stringify(data.user));
                     setCurrentUser(data.user);
+
+                    
                 }
-              
+                
+
             } catch (error) {
-              console.log(error);
+                console.log(error);
             }
         }
         fetchData();
@@ -80,48 +97,26 @@ function User() {
     }, [socket]);
 
 
-
-    //function getCurrentUsername() {
-      //  sessionStorage.setItem('currentusername', '');
-        // fetch(URL + "/api/currentuser/info")
-        //   .then(res => res.text())
-        //   .then(res => {  
-        //     sessionStorage.setItem('currentusername', res.replace(/^"|"$/g, ''));
-        //     setCurrentUsername(sessionStorage.getItem('currentusername'));
-        //   })
-        //   .catch(err => err);
-    //}
-
-    
-
     async function signOut() {
-        
-        document.cookie = 'currentUsername=';
+
+        //document.cookie = 'currentUsername=';
+        Cookies.remove('currentUsername');
         const data = await axios.get("http://localhost:8000/api/users/logout/" + currentUser._id);
         sessionStorage.setItem('currentuser', '');
         setCurrentUser(null);
-        
-        //setOnlineUserList(data.data.data.userList);
 
-        //socket.emit('disconnect', null);
+        //setOnlineUserList(data.data.data.userList);
         socket.disconnect();
         setOnlineUserList([]);
         // socket.on('disconnected', function (listOnline) {
         //     setOnlineUserList(listOnline);
         // });
 
-
         //socket.emit('disconnect', { iduser: currentUser._id, displayname: currentUser.displayname });
-        //fetch(URL + "/api/sign-out");
+        
     }
 
-    function checkSignInStatus() {
-        if (currentUser) {
-            return (
-                <Redirect to="/play" />
-            );
-        }
-    }
+    
 
     const flexContainer = {
         display: 'flex',
@@ -131,79 +126,141 @@ function User() {
     //checkSignInStatus();
 
     return (
-        <body style={{ margin: 0 }}>
-            <Router>
-                <Switch>
-                    <Route exact path={'/'}>
-                        {checkSignInStatus()}
-                        <Link to={'/'}>
-                            <Button size="large" className={classes.navigationStyle}>HOME</Button>
-                        </Link>
-                        <Link to={'/play'}>
-                            <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-                        </Link>
-                        <Link to={'/sign-in'}>
-                            <Button size="large" className={classes.navigationStyle}>SIGN IN</Button>
-                        </Link>
-                        <Link to={'/sign-up'}>
-                            <Button size="large" className={classes.navigationStyle}>SIGN UP</Button>
-                        </Link>
-                    </Route>
-                    <Route path={'/sign-in'} >
-                        <Link to={'/'}>
-                            <Button size="large" className={classes.navigationStyle}>HOME</Button>
-                        </Link>
-                        <Link to={'/play'}>
-                            <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-                        </Link>
-                        <SignIn />
-                    </Route>
-                    <Route path={'/sign-up'} >
-                        <Link to={'/'}>
-                            <Button size="large" className={classes.navigationStyle}>HOME</Button>
-                        </Link>
-                        <Link to={'/play'}>
-                            <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-                        </Link>
-                        <SignUp />
-                    </Route>
+        <html>
+            <head>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css"/>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
+                <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bitter:400,700"/>
+            </head>
+            <body style={{backgroundImage: 'url("https://static.vecteezy.com/system/resources/thumbnails/000/133/727/original/WoodBackground54342.jpg")', backgroundRepeat: 'repeat'}}>    
+                
+                <Router>
+                    <Switch>
+                        <Route exact path={'/'}>
+                            <Header currentUser={currentUser} signOut={signOut} />
+                            <img src="https://zingplay.static.g6.zing.vn/images/modules/games/480x240/Cocaro.jpg" style={{width: '100%'}}/>
+                        </Route>
+                        <Route path={'/sign-in'}>
+                            <Header currentUser={currentUser} signOut={signOut} />
+                            <div hidden={currentUser}>
+                                <SignIn />
+                            </div>
+                        </Route>   
+                        <Route path={'/sign-up'}>
+                            <Header currentUser={currentUser} signOut={signOut} />
+                            <div hidden={currentUser}>
+                                <SignUp />
+                            </div>
+                        </Route>   
+                        <Route path={'/play'} >   
+                            <Header currentUser={currentUser} signOut={signOut} />
+                            <div style={flexContainer}>
+                                <TableList openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} socket={socket}/>
+                                <OnlineUserList onlineUserList={onlineUserList} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} openOnlineUserList={openOnlineUserList} setOpenOnlineUserList={setOpenOnlineUserList}/>
+                            </div>
+                            <UserInfoDialog openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+                        </Route>
+                        <Route path={'/profile'} >
+                            <Header currentUser={currentUser} signOut={signOut} />
+                            <div hidden={!currentUser}>
+                                <Profile />
+                            </div>
+                        </Route>
+                        <Route path={'/forget-password'} >
+                            <Header currentUser={currentUser} signOut={signOut} />
+                            <div hidden={currentUser}>
+                                <ForgetPassword/>
+                            </div>
+                        </Route>
+                        <Route path={'/match-history'} >
+                            <Header currentUser={currentUser} signOut={signOut} />
+                            <div hidden={!currentUser}>
+                                <MatchHistory />
+                            </div>
+                        </Route>
+                        <Route path={'/ranking-table'} >
+                            <Header currentUser={currentUser} signOut={signOut} />
+                            <RankingTable />
+                        </Route>
+                        
+                    </Switch>
+                </Router>      
+            </body>
+        </html>
 
-                    <Route path={'/play'} >
-                        <Link to={'/'}>
-                            <Button size="large" className={classes.navigationStyle}>HOME</Button>
-                        </Link>
-                        <Link to={'/play'}>
-                            <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-                        </Link>
-                        <Link to={'/profile'} hidden={!currentUser}>
-                            <Button size="large" className={classes.navigationStyle}>PROFILE</Button>
-                        </Link>
-                        <Link to={'/'} hidden={!currentUser}>
-                            <Button size="large" className={classes.navigationStyle} onClick={() => signOut()} >SIGN OUT</Button>
-                        </Link>
-                        <div style={flexContainer}>
-                            <TableList openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} socket={socket}/>
-                            <OnlineUserList onlineUserList={onlineUserList} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
-                        </div>
-                        <UserInfoDialog openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
-                    </Route>
+        // <body>
+        //     <Router>
+        //         <Switch>
+        //             <Route exact path={'/'}>
+        //                 {checkSignInStatus()}
+        //                 <Link to={'/'}>
+        //                     <Button size="large" className={classes.navigationStyle}>HOME</Button>
+        //                 </Link>
+        //                 <Link to={'/play'}>
+        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
+        //                 </Link>
+        //                 <Link to={'/sign-in'}>
+        //                     <Button size="large" className={classes.navigationStyle}>SIGN IN</Button>
+        //                 </Link>
+        //                 <Link to={'/sign-up'}>
+        //                     <Button size="large" className={classes.navigationStyle}>SIGN UP</Button>
+        //                 </Link>
+        //             </Route>
+        //             <Route path={'/sign-in'} >
+        //                 <Link to={'/'}>
+        //                     <Button size="large" className={classes.navigationStyle}>HOME</Button>
+        //                 </Link>
+        //                 <Link to={'/play'}>
+        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
+        //                 </Link>
+        //                 <SignIn />
+        //             </Route>
+        //             <Route path={'/sign-up'} >
+        //                 <Link to={'/'}>
+        //                     <Button size="large" className={classes.navigationStyle}>HOME</Button>
+        //                 </Link>
+        //                 <Link to={'/play'}>
+        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
+        //                 </Link>
+        //                 <SignUp />
+        //             </Route>
 
-                    <Route path={`/profile`}>
-                        <Link to={'/play'}>
-                            <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-                        </Link>
-                        <Link to={'/profile'}>
-                            <Button size="large" className={classes.navigationStyle}>PROFILE</Button>
-                        </Link>
-                        <Link to={'/'}>
-                            <Button size="large" className={classes.navigationStyle} onClick={() => signOut()} >SIGN OUT</Button>
-                        </Link>
-                        <Profile />
-                    </Route>
+        //             <Route path={'/play'} >
+        //                 <Link to={'/'}>
+        //                     <Button size="large" className={classes.navigationStyle}>HOME</Button>
+        //                 </Link>
+        //                 <Link to={'/play'}>
+        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
+        //                 </Link>
+        //                 <Link to={'/profile'} hidden={!currentUser}>
+        //                     <Button size="large" className={classes.navigationStyle}>PROFILE</Button>
+        //                 </Link>
+        //                 <Link to={'/'} hidden={!currentUser}>
+        //                     <Button size="large" className={classes.navigationStyle} onClick={() => signOut()} >SIGN OUT</Button>
+        //                 </Link>
+        //                 <div style={flexContainer}>
+        //                     <TableList openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} socket={socket}/>
+        //                     <OnlineUserList onlineUserList={onlineUserList} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+        //                 </div>
+        //                 <UserInfoDialog openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+        //             </Route>
 
-                </Switch>
-            </Router>
-        </body>
+        //             <Route path={`/profile`}>
+        //                 <Link to={'/play'}>
+        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
+        //                 </Link>
+        //                 <Link to={'/profile'}>
+        //                     <Button size="large" className={classes.navigationStyle}>PROFILE</Button>
+        //                 </Link>
+        //                 <Link to={'/'}>
+        //                     <Button size="large" className={classes.navigationStyle} onClick={() => signOut()} >SIGN OUT</Button>
+        //                 </Link>
+        //                 <Profile />
+        //             </Route>
+
+        //         </Switch>
+        //     </Router>
+        // </body> */}
     );
 }
 

@@ -230,7 +230,7 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
                 </Grid>
                 <Typography>O đi trước</Typography>
             </div>
-            <div className={classes.root} style={{width: 950, alignItems: 'stretch', background: "#8f5f0e"}} >
+            <div className={classes.root} style={{width: 'max-content', alignItems: 'stretch', background: "#8f5f0e"}} >
                 <div>
                     <Game dimension={board? board.size_width : 0}
                           handlePlayGame={(squares) =>handlePlayGame(squares)}
