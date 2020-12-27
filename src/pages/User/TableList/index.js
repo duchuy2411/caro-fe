@@ -37,9 +37,13 @@ import {
     Redirect
 } from "react-router-dom";
 
-//import env from '../../env.json';
-//const URL = env.SERVER_DOMAIN_NAME;
-const URL = "";
+import {useDispatch, useSelector} from 'react-redux';
+import {
+    selectAllBoards,
+    selectBoardIds,
+    selectBoardById,
+    fetchBoards,
+} from '../../../store/slice/boardsSlice';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -62,6 +66,9 @@ const useStyles = makeStyles((theme) => ({
 
 export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, socket}) {
     const classes = useStyles();
+    const dispatch = useDispatch();
+    const boardStatus = useSelector((state) => state.boards.status);
+    const boards = useSelector(selectBoardIds);
     let [tableList, setTableList] = useState([]);
     let [selectedTableTitleToView, setSelectedTableTitleToView] = useState("");
     let [openCreateTableDialog, setOpenCreateTableDialog] = useState(false);
@@ -69,34 +76,15 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
     const [openFindRoom, setOpenFindRoom] = useState(false);
     const [notFound, setNoFound] = useState(false);
 
-    // let [selectedBoardToEditOrDelete, setSelectedBoardToEditOrDelete] = useState({
-    //     id: 0,
-    //     title: "",
-    //     description: ""
-    // });
-
     useEffect(() => {
-        axios.get('boards')
-            .then(res => {
-                setTableList(res.data.data);
-            })
-            .catch(err => {
-                console.log(err);
-            })
-    }, []);
+        if (boardStatus === 'idle') {
+            dispatch(fetchBoards());
+        }
+    }, [boardStatus, dispatch]);
 
-    // function getTableList() {
-    //     setTableList([{ id: "1", title: "Tên bàn 1", description: "Đang chơi" },
-    //     { id: "2", title: "Tên bàn 2", description: "Đang chờ" },
-    //     { id: "3", title: "Tên bàn 3", description: "Đang chơi" },
-    //     { id: "4", title: "Tên bàn 4", description: "Đang chơi" },
-    //     { id: "5", title: "Tên bàn 5", description: "Đang chờ" },
-    //     { id: "6", title: "Tên bàn 6", description: "Đang chơi" }]);
-    //     // fetch(URL + "/api/board/username/" + username)
-    //     //     .then(res => res.json())
-    //     //     .then(res => setTableList(res))
-    //     //     .catch(err => err);
-    // }
+    if (boardStatus === 'succeeded') {
+        console.log(boards);
+    }
 
     function renderTableItem(tableId, title, description) {
         const path = '/play/' + tableId;
