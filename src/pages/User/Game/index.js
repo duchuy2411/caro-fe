@@ -5,7 +5,7 @@ import axios from "../../../utils/axios";
 import './index.css'
 
 function Game({dimension, handlePlayGame, newSquares, newWinLine, handleWinGame, handleReplay}) {
-    const [squares, setSquares] = useState(Array(dimension*dimension).fill(null));
+    const [squares, setSquares] = useState(Array(20*20).fill(null));
     const [lastMove, setLastMove] = useState(-1);
     const [winLine, setWinLine] = useState(null);
     const [xIsNext, setXIsNext] = useState(true);

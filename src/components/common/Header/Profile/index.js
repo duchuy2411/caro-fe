@@ -19,12 +19,14 @@ export default function Profile() {
     const [currentUser, setCurrentUser] = useState(JSON.parse(sessionStorage.getItem('currentuser')));
     let [username, setUsername] = useState(currentUser.username);
     let [displayName, setDisplayName] = useState(currentUser.displayname);
-    let [joinDate, setJoinDate] = useState("01/01/2021");
-    let [matchStatistic, setMatchStatistic] = useState("Đã chơi 10, thắng 5, hòa 4, thua 1, tỷ lệ thắng 80%");
-    let [level, setLevel] = useState("Kỳ thánh");
+    let [joinDate, setJoinDate] = useState(currentUser.join_date);
+    let [totalMatch, setTotalMatch] = useState(currentUser.total_match);
+    let [winMatch, setWinMatch] = useState(currentUser.win_match);
+    let [winPercent, setWinPercent] = useState(currentUser.win_percent);
+    let [cup, setCup] = useState(currentUser.cup);
     let [email, setEmail] = useState(currentUser.email);
     let [password, setPassword] = useState(currentUser.password);
-
+    let [statistic, setStatistic] = useState("Đã chơi " + totalMatch + ", thắng " + winMatch + ", tỉ lệ " + winPercent + "%");
     
     let inputMale, inputFemale;
     const inputSize = 250;
@@ -41,8 +43,8 @@ export default function Profile() {
 
     const path = URL + "/update-profile";
     useEffect(() => {
-        //getUserList(username);
-    }, [username, displayName, joinDate, matchStatistic, level, email]);
+        setStatistic("Đã chơi " + totalMatch + ", thắng " + winMatch + ", tỉ lệ " + winPercent + "%");
+    }, [username, displayName, joinDate, totalMatch, winMatch, winPercent, cup, email]);
     
     
     return (
@@ -63,11 +65,11 @@ export default function Profile() {
                 </div>
                 <div className={classes.infoLineStyle}>
                     <label className={classes.labelStyle}>Statistic</label>
-                    <input type="text" name="matchStatistic" defaultValue={matchStatistic} size={inputSize} disabled="true"/>
+                    <input type="text" name="matchStatistic" defaultValue={statistic} size={inputSize} disabled="true"/>
                 </div>
                 <div className={classes.infoLineStyle}>
-                    <label className={classes.labelStyle}>Level</label>
-                    <input type="text" name="matchStatistic" defaultValue={level} size={inputSize} disabled="true"/>
+                    <label className={classes.labelStyle}>Cup</label>
+                    <input type="text" name="matchStatistic" defaultValue={cup} size={inputSize} disabled="true"/>
                 </div>
                 <div className={classes.infoLineStyle}>
                     <label className={classes.labelStyle}>Email</label>

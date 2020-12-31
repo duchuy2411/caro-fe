@@ -16,17 +16,21 @@ import {
     Redirect
 } from "react-router-dom";
 
+import { useDispatch } from 'react-redux';
+import { fetchUserInfoDialog } from '../../store/slice/userInfoDialogSlice';
+
 const useStyles = makeStyles((theme) => ({
 
 }));
 
-export default function Audience({openUserInfoDialog, setOpenUserInfoDialog}) {
+export default function Audience({}) {
     const classes = useStyles();
     let [audienceList, setAudienceList] = useState([]);
+    const dispatch = useDispatch();
 
     function getAudienceList() {
-        setAudienceList([{ iduser: "1", displayname: "Player 1" },
-        { iduser: "2", displayname: "Player 2" }]);
+        setAudienceList([{ iduser: "5fd79ae65af5db095e4e6e75", displayname: "Lê" },
+        { iduser: "5fd79af05af5db095e4e6e76", displayname: "Nguyễn" }]);
         // fetch(URL + "/api/board/username/" + username)
         //     .then(res => res.json())
         //     .then(res => setTableList(res))
@@ -40,7 +44,7 @@ export default function Audience({openUserInfoDialog, setOpenUserInfoDialog}) {
     function renderAudienceItem(iduser, displayname) {
         return (
             <ListItem key={iduser} button>
-                <Button onClick={() => setOpenUserInfoDialog(true)}>
+                <Button onClick={() => displayUserInfoDialog(iduser)}>
                     <Avatar variant="circle" src='/img/user-icon.jpg' style={{width: 30, height: 30, marginRight: 10}}></Avatar>
                     <ListItemText primary={displayname} />
                 </Button>
@@ -52,6 +56,10 @@ export default function Audience({openUserInfoDialog, setOpenUserInfoDialog}) {
         let result = [];
         audienceList.map((audienceItem) => result.push(renderAudienceItem(audienceItem.iduser, audienceItem.displayname)));
         return result;
+    }
+
+    async function displayUserInfoDialog(iduser) {
+        await dispatch(fetchUserInfoDialog({iduser}));
     }
 
     return (

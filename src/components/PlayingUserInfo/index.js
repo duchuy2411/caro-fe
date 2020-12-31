@@ -17,6 +17,8 @@ import {
     Link,
     Redirect
 } from "react-router-dom";
+import { useDispatch } from 'react-redux';
+import { fetchUserInfoDialog } from '../../store/slice/userInfoDialogSlice';
 
 const useStyles = makeStyles((theme) => ({
     playingUserInfoStyle: {
@@ -28,8 +30,9 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-export default function PlayingUserInfo({openUserInfoDialog, setOpenUserInfoDialog}) {
+export default function PlayingUserInfo({}) {
     const classes = useStyles();
+    const dispatch = useDispatch();
 
     const flexContainer = {
         display: 'flex',
@@ -40,7 +43,7 @@ export default function PlayingUserInfo({openUserInfoDialog, setOpenUserInfoDial
 
     function getPlayingUsers() {
         //get api
-        let iduser = ["1", "2"], displayname = ["Người chơi 1", "Người chơi 2"];
+        let iduser = ["5fd799405af5db095e4e6e74", "5fd79ae65af5db095e4e6e75"], displayname = ["Người chơi 1", "Người chơi 2"];
         setPlayingUsers([{ iduser: iduser[0], displayname: displayname[0], score: "0" },
         { iduser: iduser[1], displayname: displayname[1], score: "0" }]);
     }
@@ -55,7 +58,7 @@ export default function PlayingUserInfo({openUserInfoDialog, setOpenUserInfoDial
                 <Card variant="outlined" className={ classes.playingUserInfoStyle }>
                     <CardContent>
                         <div style={flexContainer}>
-                            <Button onClick={() => setOpenUserInfoDialog(true)}>
+                            <Button onClick={() => displayUserInfoDialog(playingUser.iduser)}>
                                 <Avatar variant="square"  src='/img/user-icon.jpg' style={{width: 50, height: 50}}></Avatar>
                             </Button>
                             <div style={{marginLeft: 30}}>
@@ -87,6 +90,10 @@ export default function PlayingUserInfo({openUserInfoDialog, setOpenUserInfoDial
         
         playingUsers.map((playingUser) => result.push(renderPlayingUser(playingUser)));
         return result;
+    }
+
+    async function displayUserInfoDialog(iduser) {
+        await dispatch(fetchUserInfoDialog({iduser}));
     }
 
     return (

@@ -27,10 +27,10 @@ export default function Chat({socket}) {
 
     let [itemChatList, setItemChatList] = useState([<li></li>]);
     let url = window.location.href;
-    let idRoom = url.slice(url.lastIndexOf('/') + 1);
+    let boardCode = url.slice(url.lastIndexOf('/') + 1);
 
     function getItemChatList() {
-        axios.get('http://localhost:8000/messages/' + idRoom)
+        axios.get('http://localhost:8000/messages/' + boardCode)
         .then(res => {
             let messageList = res.data.data;
             let currentItemChatList = [];
@@ -99,7 +99,7 @@ export default function Chat({socket}) {
         }
         document.getElementById("content").value = "";
         if (socket) {
-            socket.emit('send-message', {fromUsername: currentUser.username, fromDisplayName: currentUser.displayname, fromBoardId: idRoom, content: content});
+            socket.emit('send-message', {fromUsername: currentUser.username, fromDisplayName: currentUser.displayname, fromBoardId: boardCode, content: content});
         }
         //getItemChatList();
         let newItemChatList = itemChatList.slice();

@@ -74,7 +74,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOpenUserInfoDialog, socket}) {
+export default function TableItem({selectedBoardTitle, socket}) {
     const classes = useStyles();
     const [board, setBoard] = useState();
     const [openHistory, setOpenHistory] = useState(false);
@@ -146,7 +146,6 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
         //     socket.emit('join-room', [1,2]);
         // }
     }, [selectedBoardTitle]);
-
     
 
     function handlePlayGame(squares) {
@@ -182,6 +181,8 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
     function handleReplay() {
         setReplay(false);
     }
+
+    
 
     return (
         <React.Fragment>
@@ -241,10 +242,10 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
                 </div>
                 <div style={{background: '#0ace5b'}}>
                     <div>
-                        <PlayingUserInfo openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+                        <PlayingUserInfo />
                     </div>
                     <div>
-                        <Audience openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+                        <Audience />
                     </div>
                 </div>
                 <div>

@@ -69,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, socket}) {
+export default function TableList({socket}) {
     const classes = useStyles();
     const dispatch = useDispatch();
     const boardStatus = useSelector((state) => state.boards.status);
@@ -80,7 +80,12 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
     const [dimension, setDimension] = useState(10);
     const [openFindRoom, setOpenFindRoom] = useState(false);
     const [notFound, setNoFound] = useState(false);
-
+    const [currentUser, setCurrentUser] = useState(JSON.parse(sessionStorage.getItem('currentuser')));
+    
+    const [openLoading, setOpenLoading] = useState(false);
+    const [openInvitationBox, setOpenInvitationBox] = useState(false);
+    const [invitationBoxMessage, setInvitationBoxMessage] = useState("");
+    const [boardCodeInvited, setBoardCodeInvited] = useState(null);
     useEffect(() => {
         if (boardStatus === 'idle') {
             dispatch(fetchBoards());
@@ -93,14 +98,56 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
         }
     }, [boardStatus])
 
-    function renderTableItem(tableId, title, description) {
+    useEffect(() => {
+        if (socket) {
+            socket.on('join-room-quick-play', function (data) {
+                if (currentUser._id === data[0]) {
+                    setOpenLoading(false);
+                    window.location.href = '/play/' + data[1];
+                }
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.removeAllListeners('join-room-quick-play', () => { })
+            }
+        }
+    }, [socket]);
+
+    useEffect(() => {
+        if (socket) {
+            socket.on('send-invitation', function (data) {
+                if (currentUser._id === data[1]) {
+                    setBoardCodeInvited(data[2]);
+                    setInvitationBoxMessage("Người chơi " + data[0] + " muốn mời bạn vào phòng " + data[2]);
+                    setOpenInvitationBox(true);
+                }
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.removeAllListeners('send-invitation', () => { })
+            }
+        }
+    }, [socket]);
+
+    function renderTableItem(tableId, title, description, state) {
         const path = '/play/' + tableId;
+        let avatar;
+        if (state == -1)
+            return;
+        if (state == 1)
+            avatar = <Avatar variant="square" className={classes.tableImage} src='/img/waiting-table.png' ></Avatar>;
+        else
+            avatar = <Avatar variant="square" className={classes.tableImage} src='/img/playing-table.png' ></Avatar>;
         return (
             <GridListTile key={tableId}>
                 <Card variant="outlined" className={classes.cardStyle}>
                     <CardContent>
                         <Link to={{pathname: path, state: {idBoard: tableId}}}>
-                            <Avatar variant="square" className={classes.tableImage} src='/img/waiting-table.png' ></Avatar>
+                            {avatar}
                         </Link>
                         <Typography variant="h6" component="h6" gutterBottom style={{color: 'white'}}>
                             {title}
@@ -141,24 +188,25 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
 
     function renderTableList() {
         let result = [];
-        tableList.map((tableItem) => result.push(renderTableItem(tableItem.code, tableItem.title, tableItem.description)));
+        tableList.map((tableItem) => result.push(renderTableItem(tableItem.code, tableItem.title, tableItem.description, tableItem.state)));
         return result;
     }
 
-    function createNewTable() {
-        let newTitle = document.getElementById('title-add').value;
-        let newDescription = document.getElementById('description-add').value;
+    async function createNewTable(newTitle, newDescription) {
+        //let newTitle = document.getElementById('title-add').value;
+        //let newDescription = document.getElementById('description-add').value;
         //tableList.push({id: "4", title: newTitle, description: newDescription});
         // fetch(URL + '/api/add-board/username/' + username + '/title/' + title + '/description/' + description)
         //     .then(res => res.json())
         //     .then(res => { if (res) alert('Add new board successfully'); else alert('Add new board unsuccessfully') })
         //     .catch(err => err);
-        axios.post('boards', {
-            user: JSON.parse(sessionStorage.currentuser)._id,
+        await axios.post('boards', {
+            id_user1: JSON.parse(sessionStorage.currentuser)._id,
             title: newTitle,
             description: newDescription,
-            width: dimension,
-            height: dimension,
+            size: 20,
+            password: "",
+            state: 1
             })
             .then(res => {
                 console.log(res);
@@ -166,6 +214,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                     pathname: '/play/' + res.data.data.code,
                     state: {idBoard: res.data.data.code}
                 });
+
                 window.location.reload();
                 // setTableList([...tableList, {id: res.data.data.code, title: res.data.data.title, description: res.data.data.description}]);
             })
@@ -190,6 +239,48 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                 console.log(err);
                 setNoFound(true);
             })
+    }
+
+    // sleep time expects milliseconds
+    function sleep (time) {
+        return new Promise((resolve) => setTimeout(resolve, time));
+    }
+
+    async function findUser() {
+        const api = await axios.get('boards/quickPlay');
+        if (api.data.data) {
+            let listIdUser = JSON.stringify(api.data.data).slice(2, JSON.stringify(api.data.data).length - 2).split('","');
+            let remainingIdUser;
+            if (currentUser._id === listIdUser[0])
+                remainingIdUser = listIdUser[1];
+            else
+                remainingIdUser = listIdUser[0];
+            await createNewTable(currentUser.displayname, "Chơi thật vui!");
+            await socket.emit("invite-user-clicked-quick-play", [currentUser._id, remainingIdUser]);
+            await setOpenLoading(false);
+            //alert(listIdUser[0] + "+" + listIdUser[1]);
+        }
+    }
+
+    async function quickPlay() {
+        await axios.post('boards/quickPlay', {iduser: currentUser._id, cup: currentUser.cup})
+            .then(async res => {
+                await setOpenLoading(true);
+            })
+            .catch(err => {
+
+            })
+        await findUser();
+    }
+
+    async function deleteQuickPlay() {
+        await axios.post('boards/deleteQuickPlay', {iduser: currentUser._id});
+        await setOpenLoading(false);
+        await alert("Không tìm thấy người chơi phù hợp");
+    }
+
+    function acceptInvitation() {
+        window.location.href = '/play/' + boardCodeInvited;
     }
 
     // function updateSelectedBoardToEditOrDelete(e) {
@@ -227,7 +318,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
     // }
 
     return (
-        <div style={{ marginLeft: 60, width: 'fit-content' }}>
+        <div style={{ marginLeft: 60, width: '1000px' }}>
             <Router>
                 <Switch>
                     <Route exact path={`/play`}>
@@ -242,7 +333,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                             </Typography>
                         </Button>
                         
-                        <Button style={{backgroundColor: 'blue', color: 'white', marginLeft: '100px'}}>
+                        <Button onClick={() => quickPlay()} style={{backgroundColor: 'blue', color: 'white', marginLeft: '100px'}}>
                             Chơi nhanh
                         </Button>
 
@@ -270,7 +361,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
 
                     </Route>
                     <Route path={`/play/:tableId`} >
-                        <TableItem selectedTableTitleToView={selectedTableTitleToView} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} socket={socket}/>
+                        <TableItem selectedTableTitleToView={selectedTableTitleToView} socket={socket}/>
                     </Route>
 
                 </Switch>
@@ -301,7 +392,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                     <Button onClick={() => { setOpenCreateTableDialog(false); }} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={() => { setOpenCreateTableDialog(false); createNewTable(); }} color="primary">
+                    <Button onClick={() => { setOpenCreateTableDialog(false); createNewTable(document.getElementById('title-add').value, document.getElementById('description-add').value); }} color="primary">
                         Add
                     </Button>
                 </DialogActions>
@@ -322,6 +413,35 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                     </Button>
                     <Button onClick={() => {  findRoom(); }} color="primary">
                         Search
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={openLoading} aria-labelledby="form-dialog-title">
+                <DialogContent>
+                    <img src="https://appa.com.vn/images/default/loading.gif" />
+                    <DialogContentText>
+                        Đang tìm đối thủ, vui lòng đợi trong giây lát...
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => { deleteQuickPlay() }} color="danger">
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={openInvitationBox} aria-labelledby="form-dialog-title">
+                <DialogContent>
+                    <DialogContentText>
+                        {invitationBoxMessage}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => { setOpenInvitationBox(false); }} color="danger">
+                        Cancel
+                    </Button>
+                    <Button onClick={() => { acceptInvitation(); setOpenInvitationBox(false); }} color="danger">
+                        Accept
                     </Button>
                 </DialogActions>
             </Dialog>
