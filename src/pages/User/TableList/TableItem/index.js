@@ -74,7 +74,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOpenUserInfoDialog, socket}) {
+export default function TableItem({selectedBoardTitle, socket}) {
     const classes = useStyles();
     const board = useSelector((state) => selectBoardByRoom(state,window.location.pathname.split('/')[2]))[0];
     // const [board, setBoard] = useState();
@@ -260,10 +260,10 @@ export default function TableItem({selectedBoardTitle, openUserInfoDialog, setOp
                 </div>
                 <div style={{background: '#0ace5b'}}>
                     <div>
-                        <PlayingUserInfo openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+                        <PlayingUserInfo />
                     </div>
                     <div>
-                        <Audience openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+                        <Audience />
                     </div>
                 </div>
                 <div>

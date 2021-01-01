@@ -20,6 +20,8 @@ import Header from '../../components/common/Header/index';
 //import './index.css';
 import useScript from '../../utils/hooks/useScript';
 import Cookies from 'js-cookie';
+import { useDispatch, useSelector } from 'react-redux';
+import { onlineUserUpdated } from '../../store/slice/onlineUsersSlice';
 
 import {
     BrowserRouter as Router,
@@ -38,13 +40,9 @@ const useStyles = makeStyles((theme) => ({
 
 function User() {
     const classes = useStyles();
-
+    const dispatch = useDispatch();
     const [socket, setSocket] = useState();
     let [currentUser, setCurrentUser] = useState(null);
-    let [onlineUserList, setOnlineUserList] = useState([]);
-
-    let [openUserInfoDialog, setOpenUserInfoDialog] = useState(false);
-    let [openOnlineUserList, setOpenOnlineUserList] = useState(true);
 
     useScript('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js');
     useScript('https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.bundle.min.js');
@@ -83,8 +81,9 @@ function User() {
     useEffect(() => {
 
         if (socket) {
-            socket.on('list-online', function (listOnline) {
-                setOnlineUserList(listOnline);
+            socket.on('list-online', async function (listOnline) {
+                await dispatch(onlineUserUpdated({listOnlineUser: listOnline}));
+                //setOnlineUserList(listOnline);
             });
         }
 
@@ -106,8 +105,10 @@ function User() {
         setCurrentUser(null);
 
         //setOnlineUserList(data.data.data.userList);
+        
         socket.disconnect();
-        setOnlineUserList([]);
+        await dispatch(onlineUserUpdated({listOnlineUser: []}));
+        //setOnlineUserList([]);
         // socket.on('disconnected', function (listOnline) {
         //     setOnlineUserList(listOnline);
         // });
@@ -155,10 +156,10 @@ function User() {
                         <Route path={'/play'} >   
                             <Header currentUser={currentUser} signOut={signOut} />
                             <div style={flexContainer}>
-                                <TableList openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} socket={socket}/>
-                                <OnlineUserList onlineUserList={onlineUserList} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} openOnlineUserList={openOnlineUserList} setOpenOnlineUserList={setOpenOnlineUserList}/>
+                                <TableList socket={socket}/>
+                                <OnlineUserList/>
                             </div>
-                            <UserInfoDialog openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
+                            <UserInfoDialog socket={socket}/>
                         </Route>
                         <Route path={'/profile'} >
                             <Header currentUser={currentUser} signOut={signOut} />
@@ -181,6 +182,7 @@ function User() {
                         <Route path={'/ranking-table'} >
                             <Header currentUser={currentUser} signOut={signOut} />
                             <RankingTable />
+                            <UserInfoDialog socket={socket}/>
                         </Route>
                         
                     </Switch>

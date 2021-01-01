@@ -72,7 +72,8 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, socket}) {
+
+export default function TableList({socket}) {
     const classes = useStyles();
     const dispatch = useDispatch();
     const boardStatus = useSelector((state) => state.boards.status);
@@ -88,6 +89,12 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
     const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
     const board = useSelector((state) => selectBoardByRoom(state, idRoom));
 
+    const [currentUser, setCurrentUser] = useState(JSON.parse(sessionStorage.getItem('currentuser')));
+
+    const [openLoading, setOpenLoading] = useState(false);
+    const [openInvitationBox, setOpenInvitationBox] = useState(false);
+    const [invitationBoxMessage, setInvitationBoxMessage] = useState("");
+    const [boardCodeInvited, setBoardCodeInvited] = useState(null);
     useEffect(() => {
         if (boardStatus === 'idle') {
             dispatch(fetchBoards());
@@ -100,8 +107,50 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
         }
     }, [boardStatus])
 
-    function renderTableItem(tableId, title, description) {
+    useEffect(() => {
+        if (socket) {
+            socket.on('join-room-quick-play', function (data) {
+                if (currentUser._id === data[0]) {
+                    setOpenLoading(false);
+                    window.location.href = '/play/' + data[1];
+                }
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.removeAllListeners('join-room-quick-play', () => { })
+            }
+        }
+    }, [socket]);
+
+    useEffect(() => {
+        if (socket) {
+            socket.on('send-invitation', function (data) {
+                if (currentUser._id === data[1]) {
+                    setBoardCodeInvited(data[2]);
+                    setInvitationBoxMessage("Người chơi " + data[0] + " muốn mời bạn vào phòng " + data[2]);
+                    setOpenInvitationBox(true);
+                }
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.removeAllListeners('send-invitation', () => { })
+            }
+        }
+    }, [socket]);
+
+    function renderTableItem(tableId, title, description, state) {
         const path = '/play/' + tableId;
+        let avatar;
+        if (state == -1)
+            return;
+        if (state == 1)
+            avatar = <Avatar variant="square" className={classes.tableImage} src='/img/waiting-table.png' ></Avatar>;
+        else
+            avatar = <Avatar variant="square" className={classes.tableImage} src='/img/playing-table.png' ></Avatar>;
         return (
             <GridListTile key={tableId}>
                 <Card variant="outlined" className={classes.cardStyle}>
@@ -119,12 +168,37 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                     </CardContent>
                 </Card>
             </GridListTile>
+
+
+
+            // <ListItem>
+            //     <Card variant="outlined">
+            //         <CardContent>
+            //             <Link to={path}>
+            //                 <Avatar variant="square" className={classes.tableImage} src='/img/table.png' ></Avatar>
+            //             </Link>
+            //             <Typography className={classes.title} variant="h5" component="h2" gutterBottom>
+            //                 {title}
+            //             </Typography>
+            //             <Typography variant="body2" component="p">
+            //                 {description}
+            //             </Typography>
+            //         </CardContent>
+            //         {/* <CardActions >
+            //         <Link to={path}>
+            //             <Button size="small" onClick={() => setSelectedBoardTitleToView(title)}>VIEW</Button>
+            //         </Link>
+            //         <Button size="small" id={boardId} onClick={(e) => {  updateSelectedBoardToEditOrDelete(e); setOpenEditBoardDialog(true); }}>EDIT</Button>
+            //         <Button size="small" onClick={(e) => { updateSelectedBoardToEditOrDelete(e); deleteBoard(); }}>DELETE </Button>
+            //         </CardActions> */}
+            //     </Card>
+            // </ListItem>
         );
     }
 
     function renderTableList() {
         let result = [];
-        tableList.map((tableItem) => result.push(renderTableItem(tableItem.code, tableItem.title, tableItem.description)));
+        tableList.map((tableItem) => result.push(renderTableItem(tableItem.code, tableItem.title, tableItem.description, tableItem.state)));
         return result;
     }
 
@@ -195,6 +269,60 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
             redirectToRoom(idBoard);
         }
     }
+    // sleep time expects milliseconds
+    function sleep (time) {
+        return new Promise((resolve) => setTimeout(resolve, time));
+    }
+
+    async function findUser() {
+        const api = await axios.get('boards/quickPlay');
+        if (api.data.data) {
+            let listIdUser = JSON.stringify(api.data.data).slice(2, JSON.stringify(api.data.data).length - 2).split('","');
+            let remainingIdUser;
+            if (currentUser._id === listIdUser[0])
+                remainingIdUser = listIdUser[1];
+            else
+                remainingIdUser = listIdUser[0];
+            await createNewTable(currentUser.displayname, "Chơi thật vui!");
+            await socket.emit("invite-user-clicked-quick-play", [currentUser._id, remainingIdUser]);
+            await setOpenLoading(false);
+            //alert(listIdUser[0] + "+" + listIdUser[1]);
+        }
+    }
+
+    async function quickPlay() {
+        await axios.post('boards/quickPlay', {iduser: currentUser._id, cup: currentUser.cup})
+            .then(async res => {
+                await setOpenLoading(true);
+            })
+            .catch(err => {
+
+            })
+        await findUser();
+    }
+
+    async function deleteQuickPlay() {
+        await axios.post('boards/deleteQuickPlay', {iduser: currentUser._id});
+        await setOpenLoading(false);
+        await alert("Không tìm thấy người chơi phù hợp");
+    }
+
+    function acceptInvitation() {
+        window.location.href = '/play/' + boardCodeInvited;
+    }
+
+    // function updateSelectedBoardToEditOrDelete(e) {
+    //     if (e.currentTarget.textContent === "EDIT")
+    //         selectedBoardToEditOrDelete.id = e.currentTarget.id;
+    //     else
+    //         selectedBoardToEditOrDelete.id = e.currentTarget.previousSibling.id;
+    //     for (var i = 0; i < boardList.length; i++) {
+    //         if (boardList[i].id == selectedBoardToEditOrDelete.id) {
+    //             setSelectedBoardToEditOrDelete({id: boardList[i].id, title: boardList[i].title, description: boardList[i].description});
+    //             //selectedBoard.description = boardList[i].description;
+    //             break;
+    //         }
+    //     }
 
     function joinRoom() {
         let passwordBoard;
@@ -220,7 +348,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
     }
 
     return (
-        <div style={{ marginLeft: 60, width: 'fit-content' }}>
+        <div style={{ marginLeft: 60, width: '1000px' }}>
             <Router>
                 <Switch>
                     <Route exact path={`/play`}>
@@ -235,7 +363,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                             </Typography>
                         </Button>
                         
-                        <Button style={{backgroundColor: 'blue', color: 'white', marginLeft: '100px'}}>
+                        <Button onClick={() => quickPlay()} style={{backgroundColor: 'blue', color: 'white', marginLeft: '100px'}}>
                             Chơi nhanh
                         </Button>
 
@@ -263,7 +391,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
 
                     </Route>
                     <Route path={`/play/:tableId`} >
-                        <TableItem selectedTableTitleToView={selectedTableTitleToView} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} socket={socket}/>
+                        <TableItem selectedTableTitleToView={selectedTableTitleToView} socket={socket}/>
                     </Route>
 
                 </Switch>
@@ -295,7 +423,7 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                     <Button onClick={() => { setOpenCreateTableDialog(false); }} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={() => { setOpenCreateTableDialog(false); createNewTable(); }} color="primary">
+                    <Button onClick={() => { setOpenCreateTableDialog(false); createNewTable(document.getElementById('title-add').value, document.getElementById('description-add').value); }} color="primary">
                         Add
                     </Button>
                 </DialogActions>
@@ -316,6 +444,35 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                     </Button>
                     <Button onClick={() => {  findRoom(); }} color="primary">
                         Tìm
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={openLoading} aria-labelledby="form-dialog-title">
+                <DialogContent>
+                    <img src="https://appa.com.vn/images/default/loading.gif" />
+                    <DialogContentText>
+                        Đang tìm đối thủ, vui lòng đợi trong giây lát...
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => { deleteQuickPlay() }} color="danger">
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={openInvitationBox} aria-labelledby="form-dialog-title">
+                <DialogContent>
+                    <DialogContentText>
+                        {invitationBoxMessage}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => { setOpenInvitationBox(false); }} color="danger">
+                        Cancel
+                    </Button>
+                    <Button onClick={() => { acceptInvitation(); setOpenInvitationBox(false); }} color="danger">
+                        Accept
                     </Button>
                 </DialogActions>
             </Dialog>

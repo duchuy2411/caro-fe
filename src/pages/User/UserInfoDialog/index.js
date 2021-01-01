@@ -10,36 +10,58 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import Avatar from '@material-ui/core/Avatar';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectUserInfoDialog, closeUserInfoDialog } from '../../../store/slice/userInfoDialogSlice';
 
 //let [openUserInfoDialog, setOpenUserInfoDialog] = useState(false);
 const useStyles = makeStyles((theme) => ({
 
 }));
 
-export default function UserInfo({ openUserInfoDialog, setOpenUserInfoDialog }) {
+export default function UserInfo({socket}){
     const classes = useStyles();
+    const dispatch = useDispatch();
+    const userInfoDialog = useSelector(selectUserInfoDialog);
+    const [currentUser, setCurrentUser] = useState(JSON.parse(sessionStorage.getItem('currentuser')));
+    useEffect(() => {
+
+    }, []);
+
+    async function inviteUser() {
+        const boardCode = window.location.pathname.split('/')[2];
+        if (boardCode) {
+            await socket.emit("invite-user", [currentUser.displayname, userInfoDialog.idUser, boardCode]);
+        }
+        else if (!currentUser) {
+            alert("Bạn cần phải đăng nhập để mời người khác");
+        }
+        else {
+            alert("Bạn cần phải ở trong bàn để mời người khác");
+        }
+    }
+
     let closeImg = { cursor: 'pointer', float: 'right', marginTop: '5px', width: '20px' };
     return (
-        <Dialog open={openUserInfoDialog}
-            onClose={() => setOpenUserInfoDialog(false)} aria-labelledby="form-dialog-title"
+        <Dialog open={userInfoDialog.isOpen}
+            onClose={() => dispatch(closeUserInfoDialog())} aria-labelledby="form-dialog-title"
         >
             <DialogTitle>Thông tin người chơi
-            <img src='https://d30y9cdsu7xlg0.cloudfront.net/png/53504-200.png' style={closeImg} onClick={() => { setOpenUserInfoDialog(false); }} />
+            <img src='https://d30y9cdsu7xlg0.cloudfront.net/png/53504-200.png' style={closeImg} onClick={() => { dispatch(closeUserInfoDialog()) }} />
             </DialogTitle>
             <DialogContent style={{display: 'flex', alignItems: 'flex-end'}}>
                 <Avatar variant="square" src='/img/user-icon.jpg' style={{ width: 90, height: 90, marginRight: 30 }}></Avatar>
                 <div>
                     <Typography className={classes.title} variant="p" component="p" style={{ fontWeight: 'bold' }} gutterBottom>
-                        Display name
+                        {userInfoDialog.displayName}
                     </Typography>
                     <Typography className={classes.title} style={{ color: 'black' }} variant="p" component="p" gutterBottom>
-                        Join Date: 01/01/2021
+                        Join Date: {userInfoDialog.joinDate}
                     </Typography>
                     <Typography className={classes.title} style={{ color: 'blue' }} variant="p" component="p" gutterBottom>
-                        Statistic: Đã chơi 10, thắng 5, hòa 4, thua 1, tỷ lệ thắng 80%
+                        {userInfoDialog.statistic}
                     </Typography>
                     <Typography className={classes.title} style={{ color: 'red' }} variant="p" component="p" gutterBottom>
-                        Level: Kỳ thánh
+                        Cup: {userInfoDialog.cup}
                     </Typography>
                 </div>
                 {/* <DialogContentText>
@@ -48,16 +70,10 @@ export default function UserInfo({ openUserInfoDialog, setOpenUserInfoDialog }) 
 
             </DialogContent>
             <DialogActions>
-            <Button onClick={() => { setOpenUserInfoDialog(false); }} color="primary">
-                    Kết bạn
-                </Button>
-                <Button onClick={() => { setOpenUserInfoDialog(false); }} color="primary">
-                    Nhắn tin
-                </Button>
-                <Button onClick={() => { setOpenUserInfoDialog(false); }} color="primary">
+                <Button onClick={() => { dispatch(closeUserInfoDialog()) }} color="primary">
                     Ván đấu
                 </Button>
-                <Button onClick={() => { setOpenUserInfoDialog(false); }} color="primary">
+                <Button onClick={() => { inviteUser(); dispatch(closeUserInfoDialog()); }} color="primary">
                     Mời chơi
                 </Button>
             </DialogActions>
