@@ -40,7 +40,11 @@ import {
 import {useDispatch, useSelector} from 'react-redux';
 import {
     selectAllBoards,
+    selectBoardById,
+    selectBoardIds,
     fetchBoards,
+    addNewBoard,
+    selectBoardByRoom,
 } from '../../../store/slice/boardsSlice';
 
 const useStyles = makeStyles((theme) => ({
@@ -68,7 +72,6 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-
 export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, socket}) {
     const classes = useStyles();
     const dispatch = useDispatch();
@@ -77,9 +80,13 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
     let [tableList, setTableList] = useState([]);
     let [selectedTableTitleToView, setSelectedTableTitleToView] = useState("");
     let [openCreateTableDialog, setOpenCreateTableDialog] = useState(false);
-    const [dimension, setDimension] = useState(10);
+    const [time, setTime] = useState(15);
     const [openFindRoom, setOpenFindRoom] = useState(false);
     const [notFound, setNoFound] = useState(false);
+    const [idRoom, setIdRoom] = useState(null);
+    const [password, setPassword] = useState(null);
+    const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+    const board = useSelector((state) => selectBoardByRoom(state, idRoom));
 
     useEffect(() => {
         if (boardStatus === 'idle') {
@@ -99,9 +106,10 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
             <GridListTile key={tableId}>
                 <Card variant="outlined" className={classes.cardStyle}>
                     <CardContent>
-                        <Link to={{pathname: path, state: {idBoard: tableId}}}>
+                        {/*<Link to={{pathname: path, state: {idBoard: tableId}}}>
                             <Avatar variant="square" className={classes.tableImage} src='/img/waiting-table.png' ></Avatar>
-                        </Link>
+                        </Link>*/}
+                        <Avatar onClick={() => checkPassword(tableId)} variant="square" className={classes.tableImage} src='/img/waiting-table.png' />
                         <Typography variant="h6" component="h6" gutterBottom style={{color: 'white'}}>
                             {title}
                         </Typography>
@@ -111,31 +119,6 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                     </CardContent>
                 </Card>
             </GridListTile>
-
-
-
-            // <ListItem>
-            //     <Card variant="outlined">
-            //         <CardContent>
-            //             <Link to={path}>
-            //                 <Avatar variant="square" className={classes.tableImage} src='/img/table.png' ></Avatar>
-            //             </Link>
-            //             <Typography className={classes.title} variant="h5" component="h2" gutterBottom>
-            //                 {title}
-            //             </Typography>
-            //             <Typography variant="body2" component="p">
-            //                 {description}
-            //             </Typography>
-            //         </CardContent>
-            //         {/* <CardActions >
-            //         <Link to={path}>
-            //             <Button size="small" onClick={() => setSelectedBoardTitleToView(title)}>VIEW</Button>
-            //         </Link>
-            //         <Button size="small" id={boardId} onClick={(e) => {  updateSelectedBoardToEditOrDelete(e); setOpenEditBoardDialog(true); }}>EDIT</Button>
-            //         <Button size="small" onClick={(e) => { updateSelectedBoardToEditOrDelete(e); deleteBoard(); }}>DELETE </Button>
-            //         </CardActions> */}
-            //     </Card>
-            // </ListItem>
         );
     }
 
@@ -145,86 +128,96 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
         return result;
     }
 
-    function createNewTable() {
+    async function createNewTable() {
         let newTitle = document.getElementById('title-add').value;
         let newDescription = document.getElementById('description-add').value;
+        const newPassword = document.getElementById('password-add').value;
+
+        await dispatch(
+            addNewBoard(
+                {
+                    title: newTitle,
+                    description: newDescription,
+                    password: newPassword, time,
+                    id_user1: JSON.parse(sessionStorage.currentuser)._id
+                }));
         //tableList.push({id: "4", title: newTitle, description: newDescription});
         // fetch(URL + '/api/add-board/username/' + username + '/title/' + title + '/description/' + description)
         //     .then(res => res.json())
         //     .then(res => { if (res) alert('Add new board successfully'); else alert('Add new board unsuccessfully') })
         //     .catch(err => err);
-        axios.post('boards', {
-            user: JSON.parse(sessionStorage.currentuser)._id,
-            title: newTitle,
-            description: newDescription,
-            width: dimension,
-            height: dimension,
-            })
-            .then(res => {
-                console.log(res);
-                history.push({
-                    pathname: '/play/' + res.data.data.code,
-                    state: {idBoard: res.data.data.code}
-                });
-                window.location.reload();
-                // setTableList([...tableList, {id: res.data.data.code, title: res.data.data.title, description: res.data.data.description}]);
-            })
-            .catch(err => {
-                console.log(err)
-            })
+        // axios.post('boards', {
+        //     user: JSON.parse(sessionStorage.currentuser)._id,
+        //     title: newTitle,
+        //     description: newDescription,
+        //     width: dimension,
+        //     height: dimension,
+        //     })
+        //     .then(res => {
+        //         console.log(res);
+        //         history.push({
+        //             pathname: '/play/' + res.data.data.code,
+        //             state: {idBoard: res.data.data.code}
+        //         });
+        //         window.location.reload();
+        //         // setTableList([...tableList, {id: res.data.data.code, title: res.data.data.title, description: res.data.data.description}]);
+        //     })
+        //     .catch(err => {
+        //         console.log(err)
+        //     })
     }
 
-    function changeDimension(e) {
-        setDimension(e.target.value);
+    function changeTime(e) {
+        setTime(e.target.value);
     }
 
     function findRoom() {
-        const idRoom = document.getElementById('id-room').value;
-        axios.get('boards/' + idRoom)
-            .then(res => {
-                setOpenFindRoom(false);
-                history.push('/play/' + idRoom);
-                window.location.reload();
-            })
-            .catch(err => {
-                console.log(err);
-                setNoFound(true);
-            })
+        if (!board[0]) {
+            setNoFound(true);
+            return;
+        }
+        if (board[0].password && idRoom) {
+            // setOpenFindRoom(false);
+            setNoFound(false);
+            setOpenPasswordDialog(true);
+        } else {
+            redirectToRoom(board.code);
+        }
     }
 
-    // function updateSelectedBoardToEditOrDelete(e) {
-    //     if (e.currentTarget.textContent === "EDIT")
-    //         selectedBoardToEditOrDelete.id = e.currentTarget.id;
-    //     else
-    //         selectedBoardToEditOrDelete.id = e.currentTarget.previousSibling.id;
-    //     for (var i = 0; i < boardList.length; i++) {
-    //         if (boardList[i].id == selectedBoardToEditOrDelete.id) {
-    //             setSelectedBoardToEditOrDelete({id: boardList[i].id, title: boardList[i].title, description: boardList[i].description});
-    //             //selectedBoard.description = boardList[i].description;
-    //             break;
-    //         }
-    //     }
+    function checkPassword(idBoard) {
+        setNoFound(false);
+        const newBoard = boards.filter(board => board.code == idBoard);
+        if (newBoard[0].password) {
+            setOpenPasswordDialog(true);
+            setIdRoom(idBoard);
+        } else {
+            redirectToRoom(idBoard);
+        }
+    }
 
-    //     //document.getElementById('title-edit').textContent = selectedBoard.title;
-    //     //document.getElementById('description-edit').textContent = selectedBoard.description;
-    //     //alert(selectedBoard.title);
-    // }
+    function joinRoom() {
+        let passwordBoard;
+        if (openFindRoom) {
+            passwordBoard = board[0].password;
+        } else {
+            passwordBoard = boards.filter(board => board.code == idRoom)[0].password;
+        }
+        if (passwordBoard !== password) {
+            setNoFound(true);
+            return;
+        }
+       redirectToRoom(board[0].code);
+    }
 
-    // function editBoard() {
-    //     let title = document.getElementById('title-edit').value;
-    //     let description = document.getElementById('description-edit').value;
-    //     fetch(URL + '/api/edit-board/username/' + username + '/id/' + selectedBoardToEditOrDelete.id + '/new-title/' + title + '/new-description/' + description)
-    //         .then(res => res.json())
-    //         .then(res => { if (res) alert('Edit board successfully'); else alert('Edit board unsuccessfully') })
-    //         .catch(err => err);
-    // }
-
-    // function deleteBoard() {
-    //     fetch(URL + '/api/delete-board/username/' + username + '/id/' + selectedBoardToEditOrDelete.id)
-    //         .then(res => res.json())
-    //         .then(res => { if (res) alert('Delete board successfully'); else alert('Delete board unsuccessfully') })
-    //         .catch(err => err);
-    // }
+    function redirectToRoom(idBoard) {
+        history.push({
+            pathname: '/play/' + idBoard,
+            state: {idBoard}
+        });
+        window.location.reload();
+        // socket.emit('join-room', [idBoard, JSON.parse(sessionStorage.currentuser)._id]);
+    }
 
     return (
         <div style={{ marginLeft: 60, width: 'fit-content' }}>
@@ -283,18 +276,19 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                         Để tạo bàn mới, hãy nhập thông tin bàn ở đây.
                     </DialogContentText>
 
-                    <TextField autoFocus margin="dense" id="title-add" label="Title" fullWidth />
-                    <TextField autoFocus margin="dense" id="description-add" label="Description" fullWidth />
-                    <InputLabel id="demo-simple-select-label" style={{marginTop: '20px'}}>Kích thước (n x x)</InputLabel>
+                    <TextField autoFocus margin="dense" id="title-add" label="Tên" fullWidth />
+                    <TextField margin="dense" id="description-add" label="Miêu tả" fullWidth />
+                    <TextField margin="dense" id="password-add" label="Mật khẩu (optional)" fullWidth/>
+                    <InputLabel id="demo-simple-select-label" style={{marginTop: '20px'}}>Thời gian cho một nước</InputLabel>
                     <Select
                         labelId="demo-simple-select-label"
-                        id="dimension-add"
-                        value={dimension}
-                        onChange={changeDimension}
+                        id="time-play-add"
+                        value={time}
+                        onChange={changeTime}
                     >
-                        <MenuItem value={10}>10</MenuItem>
-                        <MenuItem value={15}>15</MenuItem>
-                        <MenuItem value={20}>20</MenuItem>
+                        <MenuItem value={15}>15s</MenuItem>
+                        <MenuItem value={30}>30s</MenuItem>
+                        <MenuItem value={45}>45s</MenuItem>
                     </Select>
                 </DialogContent>
                 <DialogActions>
@@ -314,37 +308,36 @@ export default function TableList({ openUserInfoDialog, setOpenUserInfoDialog, s
                         Nhập id để tìm bàn
                     </DialogContentText>
 
-                    <TextField error={notFound} helperText='Phòng không tồn tại' autoFocus margin="dense" id="id-room" label="ID" fullWidth />
+                    <TextField onChange={e => setIdRoom(e.target.value)} error={notFound} helperText='Phòng không tồn tại' autoFocus margin="dense" id="id-room" label="ID" fullWidth />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => { setOpenFindRoom(false); }} color="danger">
-                        Cancel
+                        Huỷ
                     </Button>
                     <Button onClick={() => {  findRoom(); }} color="primary">
-                        Search
+                        Tìm
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* <Dialog open={openEditBoardDialog} onClose={() => setOpenEditBoardDialog(false)} aria-labelledby="form-dialog-title">
-                <DialogTitle>Edit board</DialogTitle>
+            <Dialog open={openPasswordDialog} onClose={() => {setOpenPasswordDialog(false); setNoFound(false);}} aria-labelledby="form-dialog-title">
+                <DialogTitle>Nhập mật khẩu</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
+                   {/* <DialogContentText>
                         To edit board, please enter new title and description here.
-                    </DialogContentText>
+                    </DialogContentText>*/}
 
-                    <TextField autoFocus margin="dense" id="title-edit" label="Title" defaultValue={selectedBoardToEditOrDelete.title} fullWidth />
-                    <TextField autoFocus margin="dense" id="description-edit" label="Description" defaultValue={selectedBoardToEditOrDelete.description} fullWidth />
+                    <TextField onChange={e => setPassword(e.target.value)} autoFocus margin="dense" error={notFound} helperText='Sai mật khẩu' id="password-join" label="Title" fullWidth />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => { setOpenEditBoardDialog(false); }} color="primary">
-                        Cancel
+                    <Button onClick={() => { setNoFound(false); setOpenPasswordDialog(false); }} color="primary">
+                        Huỷ
                     </Button>
-                    <Button onClick={() => { setOpenEditBoardDialog(false); editBoard(); }} color="primary">
-                        Edit
+                    <Button onClick={() => {joinRoom();}} color="primary">
+                        Vào
                     </Button>
                 </DialogActions>
-            </Dialog> */}
+            </Dialog>
 
         </div>
     );

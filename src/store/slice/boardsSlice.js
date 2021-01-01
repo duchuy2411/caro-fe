@@ -20,6 +20,11 @@ export const fetchBoards = createAsyncThunk('boards/fetchBoards', async () => {
     return response.data.data;
 })
 
+export const addNewBoard = createAsyncThunk('boards/addNewBoard', async (initBoard) => {
+    const response = await axios.post('/boards', initBoard);
+    return response.data.data;
+})
+
 const boardSlice = createSlice({
     name: 'boards',
     initialState,
@@ -32,7 +37,8 @@ const boardSlice = createSlice({
         [fetchBoards.rejected]: (state, action) => {
             state.status = 'failed';
             state.error = action.payload;
-        }
+        },
+        [addNewBoard.fulfilled]: boardsAdapter.addOne,
     },
 });
 
@@ -40,5 +46,15 @@ export default boardSlice.reducer;
 
 export const {
     selectAll: selectAllBoards,
+    selectIds: selectBoardIds,
+    selectById: selectBoardById
 } = boardsAdapter.getSelectors((state) => state.boards);
+
+export const selectBoardByRoom = createSelector(
+    [selectAllBoards, (state, idRoom) => {
+        return idRoom}],
+    (boards, idRoom) => {
+        return boards.filter(board => board.code == idRoom);
+    },
+)
 
