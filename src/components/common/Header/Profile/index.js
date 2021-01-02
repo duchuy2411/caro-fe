@@ -1,8 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles';
 import React, { useEffect, useState, useLocation } from 'react';
-//import env from '../../env.json';
-//const URL = env.SERVER_DOMAIN_NAME;
-const URL = "";
+import axios from '../../../../utils/axios';
+import convertAvatarPropToString from '../../../../utils/binaryToString';
 
 const useStyles = makeStyles((theme) => ({
     infoLineStyle: {
@@ -14,70 +13,92 @@ const useStyles = makeStyles((theme) => ({
         textAlign: 'left'
     }
 }));
-export default function Profile() {
+export default function Profile({}) {
     const classes = useStyles();
-    const [currentUser, setCurrentUser] = useState(JSON.parse(sessionStorage.getItem('currentuser')));
-    let [username, setUsername] = useState(currentUser.username);
-    let [displayName, setDisplayName] = useState(currentUser.displayname);
-    let [joinDate, setJoinDate] = useState(currentUser.join_date);
-    let [totalMatch, setTotalMatch] = useState(currentUser.total_match);
-    let [winMatch, setWinMatch] = useState(currentUser.win_match);
-    let [winPercent, setWinPercent] = useState(currentUser.win_percent);
-    let [cup, setCup] = useState(currentUser.cup);
-    let [email, setEmail] = useState(currentUser.email);
+    let [currentUser, setCurrentUser] = useState(JSON.parse(sessionStorage.getItem('currentuser')));
+    let [displayname, setDisplayname] = useState(currentUser.displayname);
     let [password, setPassword] = useState(currentUser.password);
-    let [statistic, setStatistic] = useState("Đã chơi " + totalMatch + ", thắng " + winMatch + ", tỉ lệ " + winPercent + "%");
-    
-    let inputMale, inputFemale;
+    let [avatar, setAvatar] = useState(currentUser.avatar);
+    //let [statistic, setStatistic] = useState();
+    let [fileName, setFileName] = useState("");
+
     const inputSize = 250;
-    // function getUserList(username) {
-    //     setUserList([{displayName: "player 1", _password: "123", sex: "Nữ", phonenumber: "0123456789", email: "dth@gmail.com"}]);
-    //     // fetch(URL + "/api/user/username/" + username)
-    //     //     .then(res => res.json())
-    //     //     .then(res => setUserList(res))
-    //     //     .catch(err => err);
-    // }
-    // function onTodoChange(value) {
-    //     setDisplayName(value);
-    // }
-
-    const path = URL + "/update-profile";
+    
     useEffect(() => {
-        setStatistic("Đã chơi " + totalMatch + ", thắng " + winMatch + ", tỉ lệ " + winPercent + "%");
-    }, [username, displayName, joinDate, totalMatch, winMatch, winPercent, cup, email]);
+        
+    }, [displayname, password, avatar]);
     
-    
-    return (
-        <div id="login-box" style={{background: 'lavender', marginBottom: '0px', height: '600px'}}>
-            <form action={path} method="post" class="left" style={{marginLeft: '50px'}}>
-                <h1 style={{alignmentBaseline: 'central'}}>PROFILE</h1>
-                <div className={classes.infoLineStyle}>
-                    <label className={classes.labelStyle}>Username</label>
-                    <input type="text" name="username" value={username} size={inputSize} style={{marginRight: '10px'}}/>
-                </div>
-                <div className={classes.infoLineStyle}>
-                    <label className={classes.labelStyle}>DisplayName</label>
-                    <input type="text" name="displayName" defaultValue={displayName} size={inputSize}/>
-                </div>
-                <div className={classes.infoLineStyle}>
-                    <label className={classes.labelStyle}>JoinDate</label>
-                    <input type="text" name="joinDate" defaultValue={joinDate} size={inputSize} disabled="true"/>
-                </div>
-                <div className={classes.infoLineStyle}>
-                    <label className={classes.labelStyle}>Statistic</label>
-                    <input type="text" name="matchStatistic" defaultValue={statistic} size={inputSize} disabled="true"/>
-                </div>
-                <div className={classes.infoLineStyle}>
-                    <label className={classes.labelStyle}>Cup</label>
-                    <input type="text" name="matchStatistic" defaultValue={cup} size={inputSize} disabled="true"/>
-                </div>
-                <div className={classes.infoLineStyle}>
-                    <label className={classes.labelStyle}>Email</label>
-                    <input type="text" name="email" defaultValue={email} size={inputSize}/>
-                </div>
-                <input type="password" name="password" placeholder="Type new password if you need" size={inputSize}/>
-                <input type="password" name="retypePassword" placeholder="Retype new password" size={inputSize}/>
+    async function updateProfile() {
+        const newUsername = document.getElementsByName("username")[0].value;
+        const newPassword = document.getElementsByName("password")[0].value;
+        const retypePassword = document.getElementsByName("retypepassword")[0].value;
+        const newDisplayName = document.getElementsByName("displayname")[0].value;
+        
+        if (newPassword != retypePassword) {
+            alert("Nhập lại mật khẩu không đúng");
+            return;
+        }
+        if (newUsername.length < 5 || newUsername.length > 50 || newDisplayName.length < 5 || newDisplayName.length > 50) {
+            alert("Username hoặc display name phải từ 5 đến 50 kí tự");
+            return;
+        }
+        if (newPassword.length > 0 && newPassword.length < 6) {
+            alert("Password phải từ 6 kí tự trở lên");
+            return;
+        }
 
+        const api = await axios.post("api/users/update-profile", {iduser: currentUser._id, newPassword: newPassword, newDisplayName: newDisplayName, fileName: fileName});
+        alert(api.data.message);
+        if (api.data.data) {
+            setCurrentUser(api.data.data);
+            setDisplayname(api.data.data.displayname);
+            setPassword(api.data.data.password);
+            setAvatar(api.data.data.avatar);
+            sessionStorage.setItem('currentuser', JSON.stringify(currentUser));
+        }
+    }
+
+    const statistic = "Đã chơi " + currentUser.total_match + ", thắng " + currentUser.win_match + ", tỉ lệ " + currentUser.win_percent + "%";
+    return (
+        <div id="login-box" style={{background: 'lavender', marginBottom: '0px', height: '600px', width: '800px'}}>
+            <form onSubmit={(e) => {e.preventDefault(); updateProfile(); }}  class="left" style={{marginLeft: '50px'}}>
+                <h1 style={{color: 'red'}}>PROFILE</h1>
+                <div style={{display: 'inline-flex'}}>
+                    <div style={{display: 'inline-block'}}>
+                        <div className={classes.infoLineStyle}>
+                            <label className={classes.labelStyle}>Username</label>
+                            <input type="text" name="username" value={currentUser.username} size={inputSize} style={{marginRight: '10px'}}/>
+                        </div>
+                        <div className={classes.infoLineStyle}>
+                            <label className={classes.labelStyle}>DisplayName</label>
+                            <input type="text" name="displayname" defaultValue={displayname} size={inputSize}/>
+                        </div>
+                        <div className={classes.infoLineStyle}>
+                            <label className={classes.labelStyle}>JoinDate</label>
+                            <input type="text" name="joindate" defaultValue={currentUser.join_date} size={inputSize} disabled="true"/>
+                        </div>
+                        <div className={classes.infoLineStyle}>
+                            <label className={classes.labelStyle}>Statistic</label>
+                            <input type="text" name="matchstatistic" defaultValue={statistic} size={inputSize} disabled="true"/>
+                        </div>
+                        <div className={classes.infoLineStyle}>
+                            <label className={classes.labelStyle}>Cup</label>
+                            <input type="text" name="cup" defaultValue={currentUser.cup} size={inputSize} disabled="true"/>
+                        </div>
+                        <div className={classes.infoLineStyle}>
+                            <label className={classes.labelStyle}>Email</label>
+                            <input type="text" name="email" value={currentUser.email} size={inputSize}/>
+                        </div>
+                        
+                        <input type="password" name="password" placeholder="Type new password if you need" size={inputSize}/>
+                        <input type="password" name="retypepassword" placeholder="Retype new password" size={inputSize}/>
+                    </div>
+                    <div style={{display: 'inline-block', flex: 'right', marginLeft: '50px'}}>
+                        <div>Avatar</div>
+                        <img style={{width: '200px', height: '200px'}} src={convertAvatarPropToString(avatar)}/>
+                        <input id="fileName" type="file" onChange={() =>{ setFileName("D:/" + document.getElementById("fileName").files[0].name); }}/>
+                    </div>
+                </div>
                 <input type="submit" name="signup_submit" value="UPDATE PROFILE" style={{width: '150px'}}/>
             </form>
         </div>

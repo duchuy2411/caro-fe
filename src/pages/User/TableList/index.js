@@ -202,11 +202,8 @@ export default function TableList({socket}) {
         return result;
     }
 
-    async function createNewTable() {
-        let newTitle = document.getElementById('title-add').value;
-        let newDescription = document.getElementById('description-add').value;
-        const newPassword = document.getElementById('password-add').value;
-
+    async function createNewTable(newTitle, newDescription, newPassword) {
+        
         await dispatch(
             addNewBoard(
                 {
@@ -283,7 +280,7 @@ export default function TableList({socket}) {
                 remainingIdUser = listIdUser[1];
             else
                 remainingIdUser = listIdUser[0];
-            await createNewTable(currentUser.displayname, "Chơi thật vui!");
+            await createNewTable(currentUser.displayname, "Chơi thật vui!", "");
             await socket.emit("invite-user-clicked-quick-play", [currentUser._id, remainingIdUser]);
             await setOpenLoading(false);
             //alert(listIdUser[0] + "+" + listIdUser[1]);
@@ -423,7 +420,7 @@ export default function TableList({socket}) {
                     <Button onClick={() => { setOpenCreateTableDialog(false); }} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={() => { setOpenCreateTableDialog(false); createNewTable(document.getElementById('title-add').value, document.getElementById('description-add').value); }} color="primary">
+                    <Button onClick={() => { setOpenCreateTableDialog(false); createNewTable(document.getElementById('title-add').value, document.getElementById('description-add').value, document.getElementById('password-add').value); }} color="primary">
                         Add
                     </Button>
                 </DialogActions>
