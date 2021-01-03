@@ -1,14 +1,18 @@
 import React, { useEffect, useState, useLocation } from 'react';
 import './index.css';
+import { Redirect } from 'react-router-dom';
+import axios from '../../../../utils/axios';
+import Cookies from 'js-cookie';
 //import env from '../../env.json';
 //const URL = env.SERVER_DOMAIN_NAME;
 const URL = "http://localhost:8000";
 
 export default function SignIn() {
-
     const signInWithUsernameAndPasswordPath = URL + "/api/users/login";
     const signInWithGooglePath = URL + "/auth/google";
     const signInWithFacebookPath = URL + "/auth/facebook";
+
+    const [isSignInSuccess, setIsSignInSuccess] = useState(false);
     useEffect(() => {
         //fetch(URL + "/sign-in");
     }, []);
@@ -21,6 +25,20 @@ export default function SignIn() {
         })
         .catch(err => err); 
     }
+
+    // async function signIn() {
+    //     const username = document.getElementsByName("username")[0].value;
+    //     const password = document.getElementsByName("password")[0].value;
+        
+    //     const api = await axios.post("api/users/login", {username, password});
+        
+    //     if (api.data.data) {
+    //         Cookies.set('currentUsername', api.data.data.username, {expires: 0.05});
+    //         setIsSignInSuccess(true);
+    //     }
+    // }
+    // if (isSignInSuccess)
+    //     window.location.href = "/";
 
     return (
         <div id="login-box" style={{background: 'lavender', marginBottom: '0px'}}>
@@ -49,22 +67,4 @@ export default function SignIn() {
             <div class="or">OR</div>
         </div>
     );
-
-
-    // return (
-        
-    //     <form action={path} method="post">
-    //         <div>
-    //             <label>Username:</label>
-    //             <input type="text" name="username" />
-    //         </div>
-    //         <div>
-    //             <label>Password:</label>
-    //             <input type="password" name="password" />
-    //         </div>
-    //         <div>
-    //             <input type="submit" value="Sign In" />
-    //         </div>
-    //     </form>
-    // );
 }

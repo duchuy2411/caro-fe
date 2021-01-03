@@ -1,38 +1,66 @@
 import React, { useEffect, useState, useLocation } from 'react';
 import './index.css';
+import '../../../../utils/axios';
+import axios from '../../../../utils/axios';
+import { Redirect } from 'react-router-dom';
 //import env from '../../env.json';
 //const URL = env.SERVER_DOMAIN_NAME;
 const URL = "http://localhost:8000";
 
 export default function SignUp() {
-
     const path = URL + "/api/users";
+    const [isSignUpSuccess, setIsSignUpSuccess] = useState(false);
     useEffect(() => {
-        //fetch(URL + "/sign-up");
+
     }, []);
+
+    function validateEmail(email) {
+        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+
+    async function signUp() {
+        const username = document.getElementsByName("username")[0].value;
+        const password = document.getElementsByName("password")[0].value;
+        const retypePassword = document.getElementsByName("retypePassword")[0].value;
+        const displayname = document.getElementsByName("displayname")[0].value;
+        const email = document.getElementsByName("email")[0].value;
+        if (password != retypePassword) {
+            alert("Nhập lại mật khẩu không đúng");
+            return;
+        }
+        if (username.length < 5 || username.length > 50 || displayname.length < 5 || displayname.length > 50) {
+            alert("Username hoặc display name phải từ 5 đến 50 kí tự");
+            return;
+        }
+        if (password.length < 6) {
+            alert("Password phải từ 6 kí tự trở lên");
+            return;
+        }
+        if (!validateEmail(email)) {
+            alert("Email không đúng định dạng");
+            return;
+        }
+        const api = await axios.post("api/users", {displayname, username, password, email});
+        alert(api.data.message);
+        if (api.data.data) {
+            setIsSignUpSuccess(true);
+            
+        }
+    }
+    if (isSignUpSuccess)
+        return (<Redirect to="/sign-in"/>);
+
     return (
         <div id="login-box" style={{background: 'lavender', marginBottom: '0px'}}>
-            <form action={path} method="post" class="left">
+            <form onSubmit={(e) => {e.preventDefault(); signUp(); }} class="left">
                 <h1>SIGN UP</h1>
 
-                <input type="text" name="username" placeholder="Username" />
-                <input type="password" name="password" placeholder="Password" />
-                <input type="password" name="retypePassword" placeholder="Retype password" />
-                <input type="text" name="displayname" placeholder="Display name" />
-
-                <div style={{marginTop: 10, marginBottom: 10}}>
-                    <label class="radio">
-                        <input type="radio" name="sex" value="Nam"/>
-                            Nam
-                    </label>
-                    <label class="radio" style={{marginLeft: 100}}>
-                        <input type="radio" name="sex" value="Nữ" checked />
-                            Nữ
-                    </label>
-                </div>
-
-                <input type="text" name="phoneNumber" placeholder="Phone number" />
-                <input type="text" name="email" placeholder="E-mail" />
+                <input type="text" name="username" placeholder="Username" required/>
+                <input type="password" name="password" placeholder="Password" required/>
+                <input type="password" name="retypePassword" placeholder="Retype password" required/>
+                <input type="text" name="displayname" placeholder="Display name" required/>
+                <input type="text" name="email" placeholder="E-mail" required/>
 
                 <input type="submit" name="signup_submit" value="SIGN UP" />
             </form>
@@ -47,40 +75,4 @@ export default function SignUp() {
             <div class="or">OR</div>
         </div>
     );
-    // return (
-
-    //     <form action={path} method="post">
-    //         <div>
-    //             <label>Username:</label>
-    //             <input type="text" name="username" required />
-    //         </div>
-    //         <div>
-    //             <label>Password:</label>
-    //             <input type="password" name="password" required />
-    //         </div>
-    //         <div>
-    //             <label>Retype password:</label>
-    //             <input type="password" name="retypePassword" required />
-    //         </div>
-    //         <div>
-    //             <label>Full Name:</label>
-    //             <input type="text" name="fullName" />
-    //         </div>
-    //         <div>
-    //             <label>Sex:</label>
-    //             <input type="text" name="sex" />
-    //         </div>
-    //         <div>
-    //             <label>Phone number:</label>
-    //             <input type="text" name="phoneNumber" />
-    //         </div>
-    //         <div>
-    //             <label>Email:</label>
-    //             <input type="text" name="email" />
-    //         </div>
-    //         <div>
-    //             <input type="submit" value="Sign Up" />
-    //         </div>
-    //     </form>
-    // );
 }

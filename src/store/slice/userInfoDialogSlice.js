@@ -4,7 +4,7 @@ import {
     createSelector,
     createEntityAdapter,
 } from '@reduxjs/toolkit';
-import axios from "axios";
+import axios from "../../utils/axios";
 
 const userInfoDialogAdapter = createEntityAdapter();
 
@@ -13,13 +13,14 @@ const initialState = [{
     idUser: "",
     displayName: "",
     statistic: "",
-    cup: 0
+    cup: 0,
+    avatar: null
 }];
 
 export const fetchUserInfoDialog = createAsyncThunk(
     'userInfoDialog/fetchUserInfoDialog',
     async (initialUserInfoDialog) => {
-        const response = await axios.get("http://localhost:8000/api/users/id/" + initialUserInfoDialog.iduser);
+        const response = await axios.get("api/users/id/" + initialUserInfoDialog.iduser);
         
         return response.data.data.user;
 
@@ -52,7 +53,8 @@ const userInfoDialogSlice = createSlice({
                 displayName: user.displayname,
                 statistic: "Đã chơi " + user.total_match + ", thắng " + user.win_match + ", tỉ lệ " + user.win_percent + "%",
                 cup: user.cup,
-                joinDate: user.join_date
+                joinDate: user.join_date,
+                avatar: user.avatar
             }
         }
     }

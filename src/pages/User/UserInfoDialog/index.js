@@ -13,6 +13,8 @@ import Avatar from '@material-ui/core/Avatar';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUserInfoDialog, closeUserInfoDialog } from '../../../store/slice/userInfoDialogSlice';
 
+import convertAvatarPropToString from '../../../utils/binaryToString';
+
 //let [openUserInfoDialog, setOpenUserInfoDialog] = useState(false);
 const useStyles = makeStyles((theme) => ({
 
@@ -49,7 +51,7 @@ export default function UserInfo({socket}){
             <img src='https://d30y9cdsu7xlg0.cloudfront.net/png/53504-200.png' style={closeImg} onClick={() => { dispatch(closeUserInfoDialog()) }} />
             </DialogTitle>
             <DialogContent style={{display: 'flex', alignItems: 'flex-end'}}>
-                <Avatar variant="square" src='/img/user-icon.jpg' style={{ width: 90, height: 90, marginRight: 30 }}></Avatar>
+                <Avatar variant="square" src={convertAvatarPropToString(userInfoDialog.avatar)} style={{ width: 110, height: 110, marginRight: 30 }}></Avatar>
                 <div>
                     <Typography className={classes.title} variant="p" component="p" style={{ fontWeight: 'bold' }} gutterBottom>
                         {userInfoDialog.displayName}
@@ -70,7 +72,7 @@ export default function UserInfo({socket}){
 
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => { dispatch(closeUserInfoDialog()) }} color="primary">
+                <Button onClick={() => { dispatch(closeUserInfoDialog()); window.location.href="/match-history/" + userInfoDialog.idUser; }} color="primary">
                     Ván đấu
                 </Button>
                 <Button onClick={() => { inviteUser(); dispatch(closeUserInfoDialog()); }} color="primary">

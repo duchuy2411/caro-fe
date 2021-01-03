@@ -6,9 +6,13 @@ import SignIn from '../../components/common/Header/SignIn';
 import SignUp from '../../components/common/Header/SignUp';
 import Profile from '../../components/common/Header/Profile';
 import ForgetPassword from '../../components/common/Header/SignIn/ForgetPassword';
+import ResetPassword from '../../components/common/Header/SignIn/ForgetPassword/ResetPassword';
+import CheckActivateAccount from '../../components/common/Header/CheckActivateAccount';
 import MatchHistory from '../../components/common/Header/MatchHistory';
+import MatchHistoryItem from '../../components/common/Header/MatchHistory/MatchHistoryItem';
 import RankingTable from '../../components/common/Header/RankingTable';
 import TableList from './TableList';
+import TableItem from './TableList/TableItem';
 import OnlineUserList from './OnlineUserList';
 import UserInfoDialog from './UserInfoDialog';
 
@@ -55,7 +59,7 @@ function User() {
                 if (currentUsername) {
                     const api = await axios.get("http://localhost:8000/api/users/" + currentUsername);
                     const data = api.data.data;
-                    
+
                     // Kết nối socket truyền vào iduser : _id và displayname là displayname
                     const io = socketio('http://localhost:8000',
                         { query: `iduser=${data.user._id}&displayname=${data.user.displayname}` });
@@ -117,14 +121,13 @@ function User() {
         
     }
 
-    
-
     const flexContainer = {
         display: 'flex',
         flexDirection: 'row',
         padding: 0,
     };
     //checkSignInStatus();
+    
 
     return (
         <html>
@@ -137,132 +140,72 @@ function User() {
                 
                 <Router>
                     <Switch>
-                        <Route exact path={'/'}>
+                        <Route path={"/*"}>
                             <Header currentUser={currentUser} signOut={signOut} />
-                            <img src="https://zingplay.static.g6.zing.vn/images/modules/games/480x240/Cocaro.jpg" style={{width: '100%'}}/>
+                            <Route exact path={'/'}>
+                                <img src="https://zingplay.static.g6.zing.vn/images/modules/games/480x240/Cocaro.jpg" style={{width: '100%'}}/>
+                            </Route>
+                            <Route path={'/sign-in'}>
+                                <div hidden={currentUser}>
+                                    <SignIn />
+                                </div>
+                            </Route>   
+                            <Route path={'/sign-up'}>
+                                <div hidden={currentUser}>
+                                    <SignUp />
+                                </div>
+                            </Route>   
+                            <Route path={'/play'} >   
+                                <div style={flexContainer}>
+                                    <Route exact path={'/play'}>
+                                        <TableList socket={socket}/>
+                                    </Route>
+                                    <Route path={`/play/:tableId`} >
+                                        <TableItem socket={socket}/>
+                                    </Route>
+                                    <OnlineUserList/>
+                                </div>
+                                <UserInfoDialog socket={socket}/>
+                            </Route>
+                            
+                            <Route path={'/profile'} >
+                                <div hidden={!currentUser}>
+                                    <Profile />
+                                </div>
+                            </Route>
+                            <Route path={'/forget-password'} >
+                                <div hidden={currentUser}>
+                                    <ForgetPassword/>
+                                </div>
+                            </Route>
+                            <Route path={'/reset-password/:key'} >
+                                <ResetPassword/>
+                            </Route>
+                            <Route path={'/activate-account/:key'} >
+                                <CheckActivateAccount />
+                            </Route>
+                            <Route exact path={'/match-history/:iduser'} >
+                                <div hidden={!currentUser}>
+                                    <MatchHistory />
+                                    <UserInfoDialog socket={socket}/>
+                                </div>
+                            </Route>
+                            <Route path={'/match-history/:iduser/:idboard'} >
+                                <div hidden={!currentUser}>
+                                    <MatchHistoryItem />
+                                    <UserInfoDialog socket={socket}/>
+                                </div>
+                            </Route>
+
+                            <Route path={'/ranking-table'} >
+                                <RankingTable />
+                                <UserInfoDialog socket={socket}/>
+                            </Route>
                         </Route>
-                        <Route path={'/sign-in'}>
-                            <Header currentUser={currentUser} signOut={signOut} />
-                            <div hidden={currentUser}>
-                                <SignIn />
-                            </div>
-                        </Route>   
-                        <Route path={'/sign-up'}>
-                            <Header currentUser={currentUser} signOut={signOut} />
-                            <div hidden={currentUser}>
-                                <SignUp />
-                            </div>
-                        </Route>   
-                        <Route path={'/play'} >   
-                            <Header currentUser={currentUser} signOut={signOut} />
-                            <div style={flexContainer}>
-                                <TableList socket={socket}/>
-                                <OnlineUserList/>
-                            </div>
-                            <UserInfoDialog socket={socket}/>
-                        </Route>
-                        <Route path={'/profile'} >
-                            <Header currentUser={currentUser} signOut={signOut} />
-                            <div hidden={!currentUser}>
-                                <Profile />
-                            </div>
-                        </Route>
-                        <Route path={'/forget-password'} >
-                            <Header currentUser={currentUser} signOut={signOut} />
-                            <div hidden={currentUser}>
-                                <ForgetPassword/>
-                            </div>
-                        </Route>
-                        <Route path={'/match-history'} >
-                            <Header currentUser={currentUser} signOut={signOut} />
-                            <div hidden={!currentUser}>
-                                <MatchHistory />
-                            </div>
-                        </Route>
-                        <Route path={'/ranking-table'} >
-                            <Header currentUser={currentUser} signOut={signOut} />
-                            <RankingTable />
-                            <UserInfoDialog socket={socket}/>
-                        </Route>
-                        
                     </Switch>
                 </Router>      
             </body>
         </html>
-
-        // <body>
-        //     <Router>
-        //         <Switch>
-        //             <Route exact path={'/'}>
-        //                 {checkSignInStatus()}
-        //                 <Link to={'/'}>
-        //                     <Button size="large" className={classes.navigationStyle}>HOME</Button>
-        //                 </Link>
-        //                 <Link to={'/play'}>
-        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-        //                 </Link>
-        //                 <Link to={'/sign-in'}>
-        //                     <Button size="large" className={classes.navigationStyle}>SIGN IN</Button>
-        //                 </Link>
-        //                 <Link to={'/sign-up'}>
-        //                     <Button size="large" className={classes.navigationStyle}>SIGN UP</Button>
-        //                 </Link>
-        //             </Route>
-        //             <Route path={'/sign-in'} >
-        //                 <Link to={'/'}>
-        //                     <Button size="large" className={classes.navigationStyle}>HOME</Button>
-        //                 </Link>
-        //                 <Link to={'/play'}>
-        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-        //                 </Link>
-        //                 <SignIn />
-        //             </Route>
-        //             <Route path={'/sign-up'} >
-        //                 <Link to={'/'}>
-        //                     <Button size="large" className={classes.navigationStyle}>HOME</Button>
-        //                 </Link>
-        //                 <Link to={'/play'}>
-        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-        //                 </Link>
-        //                 <SignUp />
-        //             </Route>
-
-        //             <Route path={'/play'} >
-        //                 <Link to={'/'}>
-        //                     <Button size="large" className={classes.navigationStyle}>HOME</Button>
-        //                 </Link>
-        //                 <Link to={'/play'}>
-        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-        //                 </Link>
-        //                 <Link to={'/profile'} hidden={!currentUser}>
-        //                     <Button size="large" className={classes.navigationStyle}>PROFILE</Button>
-        //                 </Link>
-        //                 <Link to={'/'} hidden={!currentUser}>
-        //                     <Button size="large" className={classes.navigationStyle} onClick={() => signOut()} >SIGN OUT</Button>
-        //                 </Link>
-        //                 <div style={flexContainer}>
-        //                     <TableList openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} socket={socket}/>
-        //                     <OnlineUserList onlineUserList={onlineUserList} openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
-        //                 </div>
-        //                 <UserInfoDialog openUserInfoDialog={openUserInfoDialog} setOpenUserInfoDialog={setOpenUserInfoDialog} />
-        //             </Route>
-
-        //             <Route path={`/profile`}>
-        //                 <Link to={'/play'}>
-        //                     <Button size="large" className={classes.navigationStyle}>PLAY</Button>
-        //                 </Link>
-        //                 <Link to={'/profile'}>
-        //                     <Button size="large" className={classes.navigationStyle}>PROFILE</Button>
-        //                 </Link>
-        //                 <Link to={'/'}>
-        //                     <Button size="large" className={classes.navigationStyle} onClick={() => signOut()} >SIGN OUT</Button>
-        //                 </Link>
-        //                 <Profile />
-        //             </Route>
-
-        //         </Switch>
-        //     </Router>
-        // </body> */}
     );
 }
 

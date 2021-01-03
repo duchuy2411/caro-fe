@@ -79,7 +79,6 @@ export default function TableList({socket}) {
     const boardStatus = useSelector((state) => state.boards.status);
     const boards = useSelector(selectAllBoards);
     let [tableList, setTableList] = useState([]);
-    let [selectedTableTitleToView, setSelectedTableTitleToView] = useState("");
     let [openCreateTableDialog, setOpenCreateTableDialog] = useState(false);
     const [time, setTime] = useState(15);
     const [openFindRoom, setOpenFindRoom] = useState(false);
@@ -148,9 +147,9 @@ export default function TableList({socket}) {
         if (state == -1)
             return;
         if (state == 1)
-            avatar = <Avatar variant="square" className={classes.tableImage} src='/img/waiting-table.png' ></Avatar>;
+            avatar = '/img/waiting-table.png';
         else
-            avatar = <Avatar variant="square" className={classes.tableImage} src='/img/playing-table.png' ></Avatar>;
+            avatar = '/img/playing-table.png';
         return (
             <GridListTile key={tableId}>
                 <Card variant="outlined" className={classes.cardStyle}>
@@ -158,7 +157,7 @@ export default function TableList({socket}) {
                         {/*<Link to={{pathname: path, state: {idBoard: tableId}}}>
                             <Avatar variant="square" className={classes.tableImage} src='/img/waiting-table.png' ></Avatar>
                         </Link>*/}
-                        <Avatar onClick={() => checkPassword(tableId)} variant="square" className={classes.tableImage} src='/img/waiting-table.png' />
+                        <Avatar onClick={() => checkPassword(tableId)} variant="square" className={classes.tableImage} src={avatar} />
                         <Typography variant="h6" component="h6" gutterBottom style={{color: 'white'}}>
                             {title}
                         </Typography>
@@ -288,7 +287,7 @@ export default function TableList({socket}) {
                 remainingIdUser = listIdUser[1];
             else
                 remainingIdUser = listIdUser[0];
-            await createNewTable(currentUser.displayname, "Chơi thật vui!");
+            await createNewTable(currentUser.displayname, "Chơi thật vui!", "");
             await socket.emit("invite-user-clicked-quick-play", [currentUser._id, remainingIdUser]);
             await setOpenLoading(false);
             //alert(listIdUser[0] + "+" + listIdUser[1]);
@@ -353,54 +352,44 @@ export default function TableList({socket}) {
     }
 
     return (
-        <div style={{ marginLeft: 60, width: '1000px' }}>
-            <Router>
-                <Switch>
-                    <Route exact path={`/play`}>
-                        <Typography variant="h5" component="h2" gutterBottom color="primary">
-                            Danh sách bàn chơi
-                        </Typography>
+        <div style={{ marginLeft: 40, width: '1000px' }}>
+            <Typography variant="h5" component="h2" gutterBottom color="primary">
+                Danh sách bàn chơi
+            </Typography>
 
-                        <Button onClick={() => {setOpenFindRoom(true); setNoFound(false);}}>
-                            <SearchIcon style={{width: 50, height: 50, color: 'red'}}/>
-                            <Typography>
-                                Tìm phòng
+            <Button onClick={() => {setOpenFindRoom(true); setNoFound(false);}}>
+                <SearchIcon style={{width: 50, height: 50, color: 'red'}}/>
+                <Typography>
+                    Tìm phòng
+                </Typography>
+            </Button>
+
+            <Button onClick={() => quickPlay()} style={{backgroundColor: 'blue', color: 'white', marginLeft: '100px'}}>
+                Chơi nhanh
+            </Button>
+
+            <GridList cellHeight={180} className={classes.gridList} cols={3}>
+                <GridListTile key="Subheader" >
+                    <Card variant="outlined" className={classes.cardStyle}>
+
+                        <CardActions style={{ justifyContent: 'center' }} >
+                            <Button size="small" onClick={() => setOpenCreateTableDialog(true)}>
+                                <AddCircleIcon style={{width: 90, height: 90, color: 'violet'}} />
+                            </Button>
+                        </CardActions>
+
+                        <CardContent>
+                            <Typography variant="h5" component="p" color="error">
+                                Tạo bàn
                             </Typography>
-                        </Button>
-                        
-                        <Button onClick={() => quickPlay()} style={{backgroundColor: 'blue', color: 'white', marginLeft: '100px'}}>
-                            Chơi nhanh
-                        </Button>
+                        </CardContent>
+                    </Card>
+                </GridListTile>
 
-                        <GridList cellHeight={180} className={classes.gridList} cols={3}>
-                            <GridListTile key="Subheader" >
-                                <Card variant="outlined" className={classes.cardStyle}>
-                                    
-                                    <CardActions style={{ justifyContent: 'center' }} >
-                                        <Button size="small" onClick={() => setOpenCreateTableDialog(true)}>
-                                            <AddCircleIcon style={{width: 90, height: 90, color: 'violet'}} />
-                                        </Button>
-                                    </CardActions>
+                {renderTableList()}
 
-                                    <CardContent>
-                                        <Typography variant="h5" component="p" color="error">
-                                            Tạo bàn
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            </GridListTile>
+            </GridList>
 
-                            {renderTableList()}
-
-                        </GridList>
-
-                    </Route>
-                    <Route path={`/play/:tableId`} >
-                        <TableItem selectedTableTitleToView={selectedTableTitleToView} socket={socket}/>
-                    </Route>
-
-                </Switch>
-            </Router>
 
             <Dialog open={openCreateTableDialog} onClose={() => setOpenCreateTableDialog(false)} aria-labelledby="form-dialog-title">
                 <DialogTitle>Tạo bàn</DialogTitle>
@@ -428,7 +417,7 @@ export default function TableList({socket}) {
                     <Button onClick={() => { setOpenCreateTableDialog(false); }} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={() => { setOpenCreateTableDialog(false); createNewTable(document.getElementById('title-add').value, document.getElementById('description-add').value); }} color="primary">
+                    <Button onClick={() => { setOpenCreateTableDialog(false); createNewTable(document.getElementById('title-add').value, document.getElementById('description-add').value, document.getElementById('password-add').value); }} color="primary">
                         Add
                     </Button>
                 </DialogActions>
