@@ -46,7 +46,7 @@ function App() {
   return (
       <React.Fragment>
         <Switch>
-          <Route exact path="/admin">
+          <Route exact path="/admin/">
             <Admin />
           </Route>
           <Route path="/*">

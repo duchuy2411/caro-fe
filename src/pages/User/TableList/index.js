@@ -202,12 +202,12 @@ export default function TableList({socket}) {
         return result;
     }
 
-    async function createNewTable() {
-        let newTitle = document.getElementById('title-add').value;
-        let newDescription = document.getElementById('description-add').value;
+    async function createNewTable(newTitle, newDescription) {
+        // let newTitle = document.getElementById('title-add').value;
+        // let newDescription = document.getElementById('description-add').value;
         const newPassword = document.getElementById('password-add').value;
 
-        await dispatch(
+        const res = await dispatch(
             addNewBoard(
                 {
                     title: newTitle,
@@ -215,6 +215,11 @@ export default function TableList({socket}) {
                     password: newPassword, time,
                     id_user1: JSON.parse(sessionStorage.currentuser)._id
                 }));
+
+        if (res.payload) {
+            redirectToRoom(res.payload.code);
+        }
+
         //tableList.push({id: "4", title: newTitle, description: newDescription});
         // fetch(URL + '/api/add-board/username/' + username + '/title/' + title + '/description/' + description)
         //     .then(res => res.json())

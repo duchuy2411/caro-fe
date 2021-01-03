@@ -78,38 +78,41 @@ export default function TableItem({selectedBoardTitle, socket}) {
     const classes = useStyles();
     const board = useSelector((state) => selectBoardByRoom(state,window.location.pathname.split('/')[2]))[0];
     // const [board, setBoard] = useState();
+    const [match, setMatch] = useState();
+    const [hostPlayer, setHostPlayer] = useState();
+    const [guestPlayer, setGuestPlayer] = useState();
+    const [updateBoard, setUpdateBoard] = useState(board);
     const [openHistory, setOpenHistory] = useState(false);
-    const [newSquare, setNewSquare] = useState(Array(100).fill(null));
+    const [newSquare, setNewSquare] = useState(Array(400).fill(null));
     const [winLine, setWinLine] = useState(null);
     const [history, setHistory] = useState();
+    const [message, setMessage] = useState("");
     const [readyStart, setReadyStart] = useState(false);
     const [isHost, setIsHost] = useState(false);
     const [isStart, setIsStart] = useState(false);
-    const [replay, setReplay] = useState(true);
+    const [isWin, setIsWin] = useState(false);
     const [isJoin, setIsJoin] = useState(false);
+    const [duration, setDuration] = useState(-1);
+    const [second, setSecond] = useState(-1);
+    const [isTypePlay, setIsTypePlay] = useState(false);
+    const [messageWin, setMessageWin] = useState();
 
     useEffect(() => {
         if (board && !isJoin && socket) {
             setIsHost(board.id_user1 == JSON.parse(sessionStorage.currentuser)._id);
-            console.log('join')
+            console.log('join');
             setTimeout(() => {
                 socket.emit('join-room', [window.location.pathname.split('/')[2], JSON.parse(sessionStorage.currentuser)._id]);
             }, 1500);
             setIsJoin(true);
+            setDuration(parseInt(board.time));
         }
     }, [board, socket]);
 
     useEffect(() => {
-        setReplay(true);
-        // const io = socketio('http://localhost:8000',
-        //     { query: `iduser=${JSON.parse(sessionStorage.currentuser)._id}&displayname=${JSON.parse(sessionStorage.currentuser).displayname}`} );
-        // setSocket(io);
-    }, [])
-
-    useEffect(() => {
         if (socket) {
             socket.on('ready-start', function (board) {
-                console.log(board);
+                console.log('start');
                 setReadyStart(true);
             });
         };
@@ -124,8 +127,10 @@ export default function TableItem({selectedBoardTitle, socket}) {
 
     useEffect(() => {
         if (socket) {
-            socket.on('new-match', function ([newMatch, updateBoard]) {
-                console.log(newMatch);
+            socket.on('new-match', function ([newMatch, updateBoard, user1, user2]) {
+                setMatch(newMatch);
+                setHostPlayer(user1);
+                setGuestPlayer(user2);
                 if (!isStart) setIsStart(true);
             });
         };
@@ -140,11 +145,11 @@ export default function TableItem({selectedBoardTitle, socket}) {
 
     useEffect(() => {
         if (socket) {
-            socket.on("receive", function (squares) {
+            socket.on("receive", function ([squares, msg]) {
+                setMessage(msg);
                 setNewSquare(squares);
-                if (squares.every(el => !el)) {
-                    setReplay(true);
-                }
+                setSecond(duration);
+                setIsTypePlay(false);
             });
         };
         return () => {
@@ -154,12 +159,17 @@ export default function TableItem({selectedBoardTitle, socket}) {
                 })
             }
         }
-    }, [socket])
+    }, [socket, duration])
 
     useEffect(() => {
         if (socket) {
-            socket.on("win-game", function (line) {
-                setWinLine(line);
+            socket.on("win-game", function ([line, msg]) {
+                console.log('win game');
+                setMessageWin(msg);
+                setIsWin(true);
+                if (line) {
+                    setWinLine(line);
+                }
             });
         };
         return () => {
@@ -171,25 +181,51 @@ export default function TableItem({selectedBoardTitle, socket}) {
         }
     }, [socket])
 
+   useEffect(() => {
+       console.log('call countdown', isWin, second);
+       let timer;
+       if (isWin) {
+           clearTimeout(timer);
+       } else {
+           if (second > 0 && !isTypePlay) {
+               timer = setTimeout(() => {
+                   setSecond(second -1);
+               }, 1000);
+           } else {
+               if (!isTypePlay && second === 0) {
+                   handleWinGame(null);
+               }
+               setSecond(-1);
+           }
+       }
+       return () => {
+           if (second === -1 && isTypePlay) {
+               clearTimeout(timer);
+           }
+       }
+   }, [second, isWin]);
+
     function handlePlayGame(squares) {
-        socket.emit('play-caro', squares);
-        setReadyStart(false);
+        const currentPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? hostPlayer.displayname :guestPlayer.displayname;
+        const nextPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? guestPlayer.displayname : hostPlayer.displayname;
+        const msg = currentPlayer +  ' đã đi -> Đến lượt ' + nextPlayer;
+        socket.emit('play-caro', [match._id, squares, msg]);
+        setSecond(-1);
+        setIsTypePlay(true);
+        setMessage(msg);
+    }
+    function handleWinGame(line) {
+        let msg;
+        const currentPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? hostPlayer.displayname :guestPlayer.displayname;
+        const nextPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? guestPlayer.displayname : hostPlayer.displayname;
+        if (line) {
+            msg = currentPlayer + ' chiến thắng ' + nextPlayer;
+        } else {
+            msg = nextPlayer + ' chiến thắng ' + currentPlayer;
+        }
+        socket.emit('win-game', [match._id, JSON.parse(sessionStorage.currentuser)._id, line, msg]);
     }
 
-    function handleWinGame(line) {
-        socket.emit('win-game', line);
-        // axios.post('boards/addhistory/'+board.code, {
-        //     winner: {
-        //             _id: JSON.parse(sessionStorage.currentuser)._id,
-        //             displayname: JSON.parse(sessionStorage.currentuser).displayname}
-        //     })
-        //     .then(res => {
-        //         console.log(res);
-        //     })
-        //     .catch(err => {
-        //         console.log(err);
-        //     })
-    }
 
     function renderHistoryList() {
         // axios.get('boards/gethistory/'+board.code)
@@ -203,11 +239,10 @@ export default function TableItem({selectedBoardTitle, socket}) {
     }
 
     function handleReplay() {
-        setReplay(false);
+
     }
 
     function startGame() {
-        setIsStart(true);
         socket.emit('start-game');
     }
 
@@ -222,7 +257,7 @@ export default function TableItem({selectedBoardTitle, socket}) {
                 </Typography>
                 <Grid container spacing={3} style={{justifyContent: 'center', marginBottom: '10px'}}>
                     {isHost ? (<Grid item xs={3}>
-                        <Button onClick={() => startGame()} disabled={!readyStart} variant="contained" color="secondary">
+                        <Button onClick={() => {startGame(); setReadyStart(false)}} disabled={!readyStart} variant="contained" color="secondary">
                             Bắt đầu
                         </Button>
                     </Grid>) : null}
@@ -246,7 +281,12 @@ export default function TableItem({selectedBoardTitle, socket}) {
                         </Button>
                     </Grid>
                 </Grid>
-                <Typography>O đi trước</Typography>
+                {isWin ? (<Typography>{messageWin}</Typography>) :
+                    (<React.Fragment>
+                        <Typography>{message}</Typography>
+                        {second === -1 ? (<Typography/>) : (<Typography>Thời gian: {second}s</Typography>)}
+                    </React.Fragment>)}
+
             </div>
             <div className={classes.root} style={{width: 'max-content', alignItems: 'stretch', background: "#8f5f0e"}} >
                 <div>
@@ -256,6 +296,7 @@ export default function TableItem({selectedBoardTitle, socket}) {
                                       handleReplay={() => handleReplay()}
                                       newSquares={newSquare}
                                       newWinLine={winLine}
+                                      isWin={isWin}
                     />): null}
                 </div>
                 <div style={{background: '#0ace5b'}}>

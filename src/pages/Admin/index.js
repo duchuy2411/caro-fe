@@ -1,5 +1,5 @@
 import {Admin, jsonServerRestClient, fetchUtils, Resource} from "admin-on-rest";
-import {UserList} from "./users";
+import {UserList, UserShow, UserEdit} from "./users";
 import auth from './auth';
 import PeopleIcon from "@material-ui/icons/People";
 
@@ -14,6 +14,6 @@ const httpClient = (url, options = {}) => {
 
 export default (props) => (
     <Admin restClient={jsonServerRestClient('http://localhost:8000/admin', httpClient)} authClient={auth}>
-        <Resource name="users" list={UserList} icon={PeopleIcon}/>
+        <Resource name="users" list={UserList} show={UserShow} edit={UserEdit} icon={PeopleIcon}/>
     </Admin>
 );

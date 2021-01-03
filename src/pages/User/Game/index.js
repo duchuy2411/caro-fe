@@ -4,19 +4,21 @@ import axios from "../../../utils/axios";
 
 import './index.css'
 
-function Game({dimension, handlePlayGame, newSquares, newWinLine, handleWinGame, handleReplay}) {
-    const [squares, setSquares] = useState(Array(20*20).fill(null));
+function Game({dimension, handlePlayGame, newSquares, newWinLine, handleWinGame, handleReplay, isWin}) {
+    const [squares, setSquares] = useState(Array(dimension*dimension).fill(null));
     const [lastMove, setLastMove] = useState(-1);
     const [winLine, setWinLine] = useState(null);
     const [xIsNext, setXIsNext] = useState(true);
     const [XorO, setXorO] = useState(null);
 
     useEffect(() => {
-        setSquares(newSquares);
-        if (newSquares.every(el => !el)) {
-            setWinLine(null);
+        if (newSquares) {
+            setSquares(newSquares);
+            if (newSquares.every(el => !el)) {
+                setWinLine(null);
+            }
+            setXIsNext(!xIsNext);
         }
-        setXIsNext(!xIsNext);
     }, [newSquares]);
 
     useEffect(() => {
@@ -33,10 +35,8 @@ function Game({dimension, handlePlayGame, newSquares, newWinLine, handleWinGame,
                 setXorO('O');
             }
         }
-        // if (calculateWinner(currentSquares) || currentSquares[i]) {
-        //     return;
-        // }
-        if (currentSquares[i] || winLine || (xIsNext && XorO === 'O') || (!xIsNext && XorO === 'X')) {
+
+        if (currentSquares[i] || winLine || (xIsNext && XorO === 'O') || (!xIsNext && XorO === 'X') || isWin) {
             return;
         }
 
