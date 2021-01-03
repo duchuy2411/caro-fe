@@ -48,12 +48,15 @@ export const {
     selectAll: selectAllBoards,
     selectIds: selectBoardIds,
     selectById: selectBoardById
-} = boardsAdapter.getSelectors((state) => state.boards);
+} = boardsAdapter.getSelectors((state) => {
+    return state.boards;
+});
 
 export const selectBoardByRoom = createSelector(
     [selectAllBoards, (state, idRoom) => {
         return idRoom}],
     (boards, idRoom) => {
+        console.log(boards);
         return boards.filter(board => board.code == idRoom);
     },
 )

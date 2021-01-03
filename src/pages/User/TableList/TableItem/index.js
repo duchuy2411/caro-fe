@@ -76,8 +76,9 @@ const useStyles = makeStyles((theme) => ({
 
 export default function TableItem({socket}) {
     const classes = useStyles();
+    const dispatch = useDispatch();
+    const boardStatus = useSelector((state) => state.boards.status);
     const board = useSelector((state) => selectBoardByRoom(state,window.location.pathname.split('/')[2]))[0];
-    // const [board, setBoard] = useState();
     const [match, setMatch] = useState();
     const [hostPlayer, setHostPlayer] = useState();
     const [guestPlayer, setGuestPlayer] = useState();
@@ -98,6 +99,13 @@ export default function TableItem({socket}) {
     const [messageWin, setMessageWin] = useState();
 
     useEffect(() => {
+        if (boardStatus === 'idle') {
+            dispatch(fetchBoards());
+        }
+    }, [boardStatus, dispatch]);
+
+    useEffect(() => {
+        console.log(board);
         if (board && !isJoin && socket) {
             setIsHost(board.id_user1 == JSON.parse(sessionStorage.currentuser)._id);
             console.log('join');
