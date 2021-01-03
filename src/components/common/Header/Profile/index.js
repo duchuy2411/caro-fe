@@ -47,7 +47,7 @@ export default function Profile({}) {
             return;
         }
 
-        const api = await axios.post("api/users/update-profile", {iduser: currentUser._id, newPassword: newPassword, newDisplayName: newDisplayName, fileName: fileName});
+        const api = await axios.post("api/users/update-profile", {iduser: currentUser._id, newPassword: newPassword, newDisplayName: newDisplayName, fileName: fileName, oldPassword: currentUser.password});
         alert(api.data.message);
         if (api.data.data) {
             setCurrentUser(api.data.data);

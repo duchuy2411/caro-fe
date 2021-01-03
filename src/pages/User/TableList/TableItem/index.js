@@ -74,7 +74,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function TableItem({selectedBoardTitle, socket}) {
+export default function TableItem({socket}) {
     const classes = useStyles();
     const board = useSelector((state) => selectBoardByRoom(state,window.location.pathname.split('/')[2]))[0];
     // const [board, setBoard] = useState();

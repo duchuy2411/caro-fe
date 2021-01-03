@@ -1,45 +1,45 @@
 import React, { useEffect, useState, useLocation } from 'react';
 import './index.css';
-//import env from '../../env.json';
-//const URL = env.SERVER_DOMAIN_NAME;
-const URL = "http://localhost:8000";
+import axios from '../../../../../utils/axios';
+import { Redirect } from 'react-router-dom';
 
 export default function ForgetPassword() {
-
-    const signInWithUsernameAndPasswordPath = URL + "/api/users/login";
-    const signInWithGooglePath = URL + "/auth/google";
-    const signInWithFacebookPath = URL + "/auth/facebook";
+    const requestPasswordUrl = "/forget-password";
+    const [isResetPasswordSuccess, setIsResetPasswordSuccess] = useState(false);
     useEffect(() => {
         //fetch(URL + "/sign-in");
     }, []);
 
+    function validateEmail(email) {
+        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+
+    async function forgetPassword() {
+        const email = document.getElementsByName("email")[0].value;
+        
+        if (!validateEmail(email)) {
+            alert("Email không đúng định dạng");
+            return;
+        }
+        const api = await axios.post("api/users/forget-password", {email});
+        alert(api.data.message);
+        if (api.data.data) {
+            setIsResetPasswordSuccess(true);
+            
+        }
+    }
+    if (isResetPasswordSuccess)
+        return (<Redirect to="/sign-in"/>);
 
     return (
         <div id="login-box" style={{background: 'lavender', marginBottom: '0px'}}>
-            <form method="post" class="left">
+            <form onSubmit={(e) => {e.preventDefault(); forgetPassword(); }} class="left">
                 <h1>LẤY LẠI MẬT KHẨU</h1>
-                <input type="text" name="username" placeholder="Nhập username" />
-                <input type="submit" name="signup_submit" value="THỰC HIỆN" onClick={() => alert('Link reset mật khẩu đã được gửi qua email của bạn, vui lòng click vào để xác nhận!')}/>
+                <input type="text" name="email" placeholder="Nhập email" required/>
+                <input type="submit" name="signup_submit" value="THỰC HIỆN" />
             </form>
             
         </div>
     );
-
-
-    // return (
-        
-    //     <form action={path} method="post">
-    //         <div>
-    //             <label>Username:</label>
-    //             <input type="text" name="username" />
-    //         </div>
-    //         <div>
-    //             <label>Password:</label>
-    //             <input type="password" name="password" />
-    //         </div>
-    //         <div>
-    //             <input type="submit" value="Sign In" />
-    //         </div>
-    //     </form>
-    // );
 }

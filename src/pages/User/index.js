@@ -6,10 +6,13 @@ import SignIn from '../../components/common/Header/SignIn';
 import SignUp from '../../components/common/Header/SignUp';
 import Profile from '../../components/common/Header/Profile';
 import ForgetPassword from '../../components/common/Header/SignIn/ForgetPassword';
+import ResetPassword from '../../components/common/Header/SignIn/ForgetPassword/ResetPassword';
+import CheckActivateAccount from '../../components/common/Header/CheckActivateAccount';
 import MatchHistory from '../../components/common/Header/MatchHistory';
 import MatchHistoryItem from '../../components/common/Header/MatchHistory/MatchHistoryItem';
 import RankingTable from '../../components/common/Header/RankingTable';
 import TableList from './TableList';
+import TableItem from './TableList/TableItem';
 import OnlineUserList from './OnlineUserList';
 import UserInfoDialog from './UserInfoDialog';
 
@@ -124,6 +127,7 @@ function User() {
         padding: 0,
     };
     //checkSignInStatus();
+    
 
     return (
         <html>
@@ -153,11 +157,17 @@ function User() {
                             </Route>   
                             <Route path={'/play'} >   
                                 <div style={flexContainer}>
-                                    <TableList socket={socket}/>
+                                    <Route exact path={'/play'}>
+                                        <TableList socket={socket}/>
+                                    </Route>
+                                    <Route path={`/play/:tableId`} >
+                                        <TableItem socket={socket}/>
+                                    </Route>
                                     <OnlineUserList/>
                                 </div>
                                 <UserInfoDialog socket={socket}/>
                             </Route>
+                            
                             <Route path={'/profile'} >
                                 <div hidden={!currentUser}>
                                     <Profile />
@@ -167,6 +177,12 @@ function User() {
                                 <div hidden={currentUser}>
                                     <ForgetPassword/>
                                 </div>
+                            </Route>
+                            <Route path={'/reset-password/:key'} >
+                                <ResetPassword/>
+                            </Route>
+                            <Route path={'/activate-account/:key'} >
+                                <CheckActivateAccount />
                             </Route>
                             <Route exact path={'/match-history/:iduser'} >
                                 <div hidden={!currentUser}>

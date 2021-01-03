@@ -7,6 +7,7 @@ import {
     Redirect
 } from "react-router-dom";
 import './index.css';
+import axios from '../../../utils/axios';
 
 function Header({currentUser, signOut}) {
     let [displayName, setDisplayName] = useState("");
@@ -23,8 +24,9 @@ function Header({currentUser, signOut}) {
         else setDisplayName("");
     }, [currentUser]);
 
-    function activateAccount() {
-        alert('Link kích hoạt tài khoản đã được gửi đến email của bạn. Vui lòng click vào link để kích hoạt!');
+    async function activateAccount() {
+        const api = await axios.post("api/users/activate-account", {email: currentUser.email});
+        alert(api.data.message);
     }
     let matchHistoryLink;
     if (currentUser)

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useLocation } from 'react';
 import './index.css';
 import '../../../../utils/axios';
 import axios from '../../../../utils/axios';
-import { $where } from '../../../../utils/axios';
 import { Redirect } from 'react-router-dom';
 //import env from '../../env.json';
 //const URL = env.SERVER_DOMAIN_NAME;

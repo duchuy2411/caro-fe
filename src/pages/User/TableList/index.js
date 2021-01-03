@@ -79,7 +79,6 @@ export default function TableList({socket}) {
     const boardStatus = useSelector((state) => state.boards.status);
     const boards = useSelector(selectAllBoards);
     let [tableList, setTableList] = useState([]);
-    let [selectedTableTitleToView, setSelectedTableTitleToView] = useState("");
     let [openCreateTableDialog, setOpenCreateTableDialog] = useState(false);
     const [time, setTime] = useState(15);
     const [openFindRoom, setOpenFindRoom] = useState(false);
@@ -148,9 +147,9 @@ export default function TableList({socket}) {
         if (state == -1)
             return;
         if (state == 1)
-            avatar = <Avatar variant="square" className={classes.tableImage} src='/img/waiting-table.png' ></Avatar>;
+            avatar = '/img/waiting-table.png';
         else
-            avatar = <Avatar variant="square" className={classes.tableImage} src='/img/playing-table.png' ></Avatar>;
+            avatar = '/img/playing-table.png';
         return (
             <GridListTile key={tableId}>
                 <Card variant="outlined" className={classes.cardStyle}>
@@ -158,7 +157,7 @@ export default function TableList({socket}) {
                         {/*<Link to={{pathname: path, state: {idBoard: tableId}}}>
                             <Avatar variant="square" className={classes.tableImage} src='/img/waiting-table.png' ></Avatar>
                         </Link>*/}
-                        <Avatar onClick={() => checkPassword(tableId)} variant="square" className={classes.tableImage} src='/img/waiting-table.png' />
+                        <Avatar onClick={() => checkPassword(tableId)} variant="square" className={classes.tableImage} src={avatar} />
                         <Typography variant="h6" component="h6" gutterBottom style={{color: 'white'}}>
                             {title}
                         </Typography>
@@ -345,54 +344,44 @@ export default function TableList({socket}) {
     }
 
     return (
-        <div style={{ marginLeft: 60, width: '1000px' }}>
-            <Router>
-                <Switch>
-                    <Route exact path={`/play`}>
-                        <Typography variant="h5" component="h2" gutterBottom color="primary">
-                            Danh sách bàn chơi
-                        </Typography>
+        <div style={{ marginLeft: 40, width: '1000px' }}>
+            <Typography variant="h5" component="h2" gutterBottom color="primary">
+                Danh sách bàn chơi
+            </Typography>
 
-                        <Button onClick={() => {setOpenFindRoom(true); setNoFound(false);}}>
-                            <SearchIcon style={{width: 50, height: 50, color: 'red'}}/>
-                            <Typography>
-                                Tìm phòng
-                            </Typography>
-                        </Button>
+            <Button onClick={() => {setOpenFindRoom(true); setNoFound(false);}}>
+                <SearchIcon style={{width: 50, height: 50, color: 'red'}}/>
+                <Typography>
+                    Tìm phòng
+                </Typography>
+            </Button>
+            
+            <Button onClick={() => quickPlay()} style={{backgroundColor: 'blue', color: 'white', marginLeft: '100px'}}>
+                Chơi nhanh
+            </Button>
+
+            <GridList cellHeight={180} className={classes.gridList} cols={3}>
+                <GridListTile key="Subheader" >
+                    <Card variant="outlined" className={classes.cardStyle}>
                         
-                        <Button onClick={() => quickPlay()} style={{backgroundColor: 'blue', color: 'white', marginLeft: '100px'}}>
-                            Chơi nhanh
-                        </Button>
+                        <CardActions style={{ justifyContent: 'center' }} >
+                            <Button size="small" onClick={() => setOpenCreateTableDialog(true)}>
+                                <AddCircleIcon style={{width: 90, height: 90, color: 'violet'}} />
+                            </Button>
+                        </CardActions>
 
-                        <GridList cellHeight={180} className={classes.gridList} cols={3}>
-                            <GridListTile key="Subheader" >
-                                <Card variant="outlined" className={classes.cardStyle}>
-                                    
-                                    <CardActions style={{ justifyContent: 'center' }} >
-                                        <Button size="small" onClick={() => setOpenCreateTableDialog(true)}>
-                                            <AddCircleIcon style={{width: 90, height: 90, color: 'violet'}} />
-                                        </Button>
-                                    </CardActions>
+                        <CardContent>
+                            <Typography variant="h5" component="p" color="error">
+                                Tạo bàn
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </GridListTile>
 
-                                    <CardContent>
-                                        <Typography variant="h5" component="p" color="error">
-                                            Tạo bàn
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            </GridListTile>
+                {renderTableList()}
 
-                            {renderTableList()}
+            </GridList>
 
-                        </GridList>
-
-                    </Route>
-                    <Route path={`/play/:tableId`} >
-                        <TableItem selectedTableTitleToView={selectedTableTitleToView} socket={socket}/>
-                    </Route>
-
-                </Switch>
-            </Router>
 
             <Dialog open={openCreateTableDialog} onClose={() => setOpenCreateTableDialog(false)} aria-labelledby="form-dialog-title">
                 <DialogTitle>Tạo bàn</DialogTitle>
