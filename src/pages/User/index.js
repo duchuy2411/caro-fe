@@ -21,11 +21,13 @@ import Typography from '@material-ui/core/Typography';
 
 import Helmet from 'react-helmet';
 import Header from '../../components/common/Header/index';
+
 //import './index.css';
 import useScript from '../../utils/hooks/useScript';
 import Cookies from 'js-cookie';
 import { useDispatch, useSelector } from 'react-redux';
 import { onlineUserUpdated } from '../../store/slice/onlineUsersSlice';
+import history from "../../utils/history";
 
 import {
     BrowserRouter as Router,
@@ -138,7 +140,7 @@ function User() {
             </head>
             <body style={{backgroundImage: 'url("https://static.vecteezy.com/system/resources/thumbnails/000/133/727/original/WoodBackground54342.jpg")', backgroundRepeat: 'repeat'}}>    
                 
-                <Router>
+                <Router history={history}>
                     <Switch>
                         <Route path={"/*"}>
                             <Header currentUser={currentUser} signOut={signOut} />

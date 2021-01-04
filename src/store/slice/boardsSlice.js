@@ -56,7 +56,6 @@ export const selectBoardByRoom = createSelector(
     [selectAllBoards, (state, idRoom) => {
         return idRoom}],
     (boards, idRoom) => {
-        console.log(boards);
         return boards.filter(board => board.code == idRoom);
     },
 )

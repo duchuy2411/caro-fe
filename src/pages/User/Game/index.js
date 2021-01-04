@@ -23,6 +23,11 @@ function Game({dimension, handlePlayGame, newSquares, newWinLine, handleWinGame,
 
     useEffect(() => {
         setWinLine(newWinLine);
+        if (!newWinLine) {
+            setXIsNext(true);
+            setXorO(null);
+            console.log('reset');
+        }
         handleReplay();
     }, [newWinLine]);
 
@@ -35,6 +40,7 @@ function Game({dimension, handlePlayGame, newSquares, newWinLine, handleWinGame,
                 setXorO('O');
             }
         }
+        console.log((xIsNext && XorO === 'O'));
 
         if (currentSquares[i] || winLine || (xIsNext && XorO === 'O') || (!xIsNext && XorO === 'X') || isWin) {
             return;

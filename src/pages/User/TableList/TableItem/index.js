@@ -105,7 +105,6 @@ export default function TableItem({socket}) {
     }, [boardStatus, dispatch]);
 
     useEffect(() => {
-        console.log(board);
         if (board && !isJoin && socket) {
             setIsHost(board.id_user1 == JSON.parse(sessionStorage.currentuser)._id);
             console.log('join');
@@ -117,8 +116,10 @@ export default function TableItem({socket}) {
         }
     }, [board, socket]);
 
+
     useEffect(() => {
-        if (socket) {
+        if (socket && isHost) {
+            console.log('socket start');
             socket.on('ready-start', function (board) {
                 console.log('start');
                 setReadyStart(true);
@@ -131,7 +132,7 @@ export default function TableItem({socket}) {
                 })
             }
         }
-    }, [socket])
+    }, [socket, isHost])
 
     useEffect(() => {
         if (socket) {
@@ -139,6 +140,9 @@ export default function TableItem({socket}) {
                 setMatch(newMatch);
                 setHostPlayer(user1);
                 setGuestPlayer(user2);
+                setNewSquare(Array(updateBoard.size*updateBoard.size).fill(null));
+                setIsWin(false);
+                setWinLine(null);
                 if (!isStart) setIsStart(true);
             });
         };
@@ -172,11 +176,15 @@ export default function TableItem({socket}) {
     useEffect(() => {
         if (socket) {
             socket.on("win-game", function ([line, msg]) {
-                console.log('win game');
+                console.log('win game', isHost);
                 setMessageWin(msg);
                 setIsWin(true);
                 if (line) {
                     setWinLine(line);
+                }
+                if (isHost) {
+                    console.log('ready');
+                    setReadyStart(true);
                 }
             });
         };
@@ -187,7 +195,7 @@ export default function TableItem({socket}) {
                 })
             }
         }
-    }, [socket])
+    }, [socket, isHost])
 
    useEffect(() => {
        console.log('call countdown', isWin, second);
@@ -226,12 +234,13 @@ export default function TableItem({socket}) {
         let msg;
         const currentPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? hostPlayer.displayname :guestPlayer.displayname;
         const nextPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? guestPlayer.displayname : hostPlayer.displayname;
+        const idLoser = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? match.id_user2 : match.id_user1;
         if (line) {
             msg = currentPlayer + ' chiến thắng ' + nextPlayer;
         } else {
             msg = nextPlayer + ' chiến thắng ' + currentPlayer;
         }
-        socket.emit('win-game', [match._id, JSON.parse(sessionStorage.currentuser)._id, line, msg]);
+        socket.emit('win-game', [match._id, JSON.parse(sessionStorage.currentuser)._id, idLoser, line, msg]);
     }
 
 
