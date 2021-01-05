@@ -1,5 +1,19 @@
 import { React } from 'react';
-import { List, Datagrid, TextField, EditButton, DeleteButton, Show, SimpleShowLayout, Edit, Filter, TextInput  } from 'admin-on-rest';
+import {
+    List,
+    Datagrid,
+    TextField,
+    EditButton,
+    DeleteButton,
+    ReferenceArrayField,
+    Show,
+    SimpleShowLayout,
+    Edit,
+    Filter,
+    TextInput,
+    ReferenceField, DateField
+} from 'admin-on-rest';
+import BlockButton from "./block";
 
 const UserFilter = (props) => (
     <Filter {...props}>
@@ -16,7 +30,7 @@ export const UserList = (props) => {
                 <TextField source="email" />
                 <TextField source="displayname" label="Tên"/>
                 <EditButton/>
-                <DeleteButton/>
+                <BlockButton/>
             </Datagrid>
         </List>
     );
@@ -48,6 +62,21 @@ export const UserEdit = (props) => (
             <TextField source="total_match" label="Tổng số trận"/>
             <TextField source="win_match" label="Số trận thắng"/>
             <TextField source="win_percent" label="Tỷ lệ thắng"/>
+            <ReferenceArrayField label="Các trận đã chơi" reference="matches" source="idMatches">
+                <Datagrid>
+                    <ReferenceField label="Chủ phòng" source="id_user1" reference="users">
+                        <TextField source="displayname"/>
+                    </ReferenceField>
+                    <ReferenceField label="Người chơi" source="id_user2" reference="users">
+                        <TextField source="displayname"/>
+                    </ReferenceField>
+                    <ReferenceField label="Người thắng" source="win" reference="users">
+                        <TextField source="displayname"/>
+                    </ReferenceField>
+                    <DateField label="Thời gian" source="createdAt" showTime/>
+                    <EditButton label="Xem"/>
+                </Datagrid>
+            </ReferenceArrayField>
         </SimpleShowLayout>
     </Edit>
 )

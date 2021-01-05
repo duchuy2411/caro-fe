@@ -97,6 +97,7 @@ export default function TableItem({socket}) {
     const [second, setSecond] = useState(-1);
     const [isTypePlay, setIsTypePlay] = useState(false);
     const [messageWin, setMessageWin] = useState();
+    const [displayHandOver, setDisplayHandOver] = useState(false);
 
     useEffect(() => {
         if (boardStatus === 'idle') {
@@ -143,6 +144,7 @@ export default function TableItem({socket}) {
                 setNewSquare(Array(updateBoard.size*updateBoard.size).fill(null));
                 setIsWin(false);
                 setWinLine(null);
+                setDisplayHandOver(true);
                 if (!isStart) setIsStart(true);
             });
         };
@@ -177,6 +179,7 @@ export default function TableItem({socket}) {
         if (socket) {
             socket.on("win-game", function ([line, msg]) {
                 console.log('win game', isHost);
+                setDisplayHandOver(false);
                 setMessageWin(msg);
                 setIsWin(true);
                 if (line) {
@@ -289,14 +292,21 @@ export default function TableItem({socket}) {
                             Chơi lại
                         </Button>
                     </Grid>*/}
-                    <Grid item xs={3}>
+                    {/*<Grid item xs={3}>
                         <Button onClick={() => {
                             setOpenHistory(true);
                             renderHistoryList();
                         }}  variant="contained" color="primary">
                             Xem lịch sử
                         </Button>
-                    </Grid>
+                    </Grid>*/}
+                    {isStart && displayHandOver? (<Grid item xs={3}>
+                        <Button onClick={() => {
+                            handleWinGame(null);
+                        }}  variant="contained" color="primary">
+                            Xin đầu hàng
+                        </Button>
+                    </Grid>) : null}
                 </Grid>
                 {isWin ? (<Typography>{messageWin}</Typography>) :
                     (<React.Fragment>
