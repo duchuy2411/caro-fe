@@ -201,10 +201,13 @@ export default function TableList({socket}) {
         return result;
     }
 
-    async function createNewTable(newTitle, newDescription) {
+    async function createNewTable(newTitle, newDescription, newPassword) {
         // let newTitle = document.getElementById('title-add').value;
         // let newDescription = document.getElementById('description-add').value;
-        const newPassword = document.getElementById('password-add').value;
+        if (!newTitle || !newDescription) {
+            alert("Phải nhập đủ title và description");
+            return;
+        }
 
         const res = await dispatch(
             addNewBoard(
@@ -287,7 +290,7 @@ export default function TableList({socket}) {
                 remainingIdUser = listIdUser[1];
             else
                 remainingIdUser = listIdUser[0];
-            await createNewTable(currentUser.displayname, "Chơi thật vui!", "");
+            await createNewTable(currentUser.displayname, "Caro Open", "Surewin");
             await socket.emit("invite-user-clicked-quick-play", [currentUser._id, remainingIdUser]);
             await setOpenLoading(false);
             //alert(listIdUser[0] + "+" + listIdUser[1]);
@@ -398,8 +401,8 @@ export default function TableList({socket}) {
                         Để tạo bàn mới, hãy nhập thông tin bàn ở đây.
                     </DialogContentText>
 
-                    <TextField autoFocus margin="dense" id="title-add" label="Tên" fullWidth />
-                    <TextField margin="dense" id="description-add" label="Miêu tả" fullWidth />
+                    <TextField autoFocus margin="dense" id="title-add" label="Tên" fullWidth required/>
+                    <TextField margin="dense" id="description-add" label="Miêu tả" fullWidth required />
                     <TextField margin="dense" id="password-add" label="Mật khẩu (optional)" fullWidth/>
                     <InputLabel id="demo-simple-select-label" style={{marginTop: '20px'}}>Thời gian cho một nước</InputLabel>
                     <Select

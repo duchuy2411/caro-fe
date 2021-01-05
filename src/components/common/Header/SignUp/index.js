@@ -19,6 +19,16 @@ export default function SignUp() {
         return re.test(String(email).toLowerCase());
     }
 
+    const specialChars = "<>@!#$%^&*+{}?:;|()[]'\"\\,/~`= ";
+    function checkForSpecialChar(string) {
+    for(var i = 0; i < specialChars.length; i++) {
+        if(string.indexOf(specialChars[i]) > -1) {
+            return false
+        }
+    }
+        return true;
+    }
+
     async function signUp() {
         const username = document.getElementsByName("username")[0].value;
         const password = document.getElementsByName("password")[0].value;
@@ -31,6 +41,10 @@ export default function SignUp() {
         }
         if (username.length < 5 || username.length > 50 || displayname.length < 5 || displayname.length > 50) {
             alert("Username hoặc display name phải từ 5 đến 50 kí tự");
+            return;
+        }
+        if (!checkForSpecialChar(username)) {
+            alert("Username không được chứa kí tự đặc biệt và khoảng trắng");
             return;
         }
         if (password.length < 6) {

@@ -10,6 +10,8 @@ import {
     selectBoardByRoom,
 } from '../../../../store/slice/boardsSlice';
 
+import { addGuest, addHost, addHostAndGuest } from '../../../../store/slice/playingUsersSlice';
+
 import Game from '../../Game/index.js';
 
 import List from '@material-ui/core/List';
@@ -32,7 +34,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import PlayingUserInfo from '../../../../components/PlayingUserInfo/index.js';
+import PlayingUserList from '../../../../components/PlayingUserList';
 import Audience from '../../../../components/Audience/index.js';
 import Chat from '../../../../components/Chat/index.js';
 import axios from "../../../../utils/axios";
@@ -94,9 +96,11 @@ export default function TableItem({socket}) {
     const [isWin, setIsWin] = useState(false);
     const [isJoin, setIsJoin] = useState(false);
     const [duration, setDuration] = useState(-1);
-    const [second, setSecond] = useState(-1);
+    const [second, setSecond] = useState(null);
+    const [oppSecond, setOppSecond] = useState(null);
     const [isTypePlay, setIsTypePlay] = useState(false);
     const [messageWin, setMessageWin] = useState();
+    const [hostPlayerId, setHostPlayerId] = useState("");
 
     useEffect(() => {
         if (boardStatus === 'idle') {
@@ -106,13 +110,33 @@ export default function TableItem({socket}) {
 
     useEffect(() => {
         if (board && !isJoin && socket) {
-            setIsHost(board.id_user1 == JSON.parse(sessionStorage.currentuser)._id);
-            console.log('join');
-            setTimeout(() => {
-                socket.emit('join-room', [window.location.pathname.split('/')[2], JSON.parse(sessionStorage.currentuser)._id]);
-            }, 1500);
-            setIsJoin(true);
-            setDuration(parseInt(board.time));
+            if (board && !isJoin && socket) {
+                if (board.id_user1 === JSON.parse(sessionStorage.currentuser)._id) {
+                    setIsHost(true);
+                    dispatch(addHost({ hostUser: JSON.parse(sessionStorage.currentuser) }));
+                    setHostPlayerId(board.id_user1)
+                }
+                else {
+                    setIsHost(false);
+                    axios.get("api/users/id/" + board.id_user1)
+                        .then(res => {
+                            if (res.data.data) {
+                                const user1 = res.data.data.user;
+                                if (!board.id_user2)
+                                    dispatch(addHostAndGuest({ hostUser: user1, guestUser: JSON.parse(sessionStorage.currentuser) }))
+                                setHostPlayerId(board.id_user1);
+                            }
+                        })
+                        .catch(err => {})
+                    
+                }
+                console.log('join');
+                setTimeout(() => {
+                    socket.emit('join-room', [window.location.pathname.split('/')[2], JSON.parse(sessionStorage.currentuser)._id]);
+                }, 1500);
+                setIsJoin(true);
+                setDuration(parseInt(board.time));
+            }
         }
     }, [board, socket]);
 
@@ -123,8 +147,20 @@ export default function TableItem({socket}) {
             socket.on('ready-start', function (board) {
                 console.log('start');
                 setReadyStart(true);
+
+                axios.get("api/users/id/" + board.id_user2)
+                    .then(res => {
+                        if (res.data.data) {
+                            const user2 = res.data.data.user;
+                            dispatch(addGuest({ guestUser: user2 }));
+                        }
+                    })
+                    .catch(err => {})
             });
-        };
+        }
+        else if (socket && isJoin && !isHost) {
+            dispatch(addGuest({ guestUser: JSON.parse(sessionStorage.currentuser) }))
+        }
         return () => {
             if (socket) {
                 // nghe xong xóa
@@ -143,6 +179,7 @@ export default function TableItem({socket}) {
                 setNewSquare(Array(updateBoard.size*updateBoard.size).fill(null));
                 setIsWin(false);
                 setWinLine(null);
+                setHostPlayerId(user1._id);
                 if (!isStart) setIsStart(true);
             });
         };
@@ -161,6 +198,7 @@ export default function TableItem({socket}) {
                 setMessage(msg);
                 setNewSquare(squares);
                 setSecond(duration);
+                setOppSecond(null);
                 setIsTypePlay(false);
             });
         };
@@ -198,35 +236,53 @@ export default function TableItem({socket}) {
     }, [socket, isHost])
 
    useEffect(() => {
-       console.log('call countdown', isWin, second);
-       let timer;
-       if (isWin) {
-           clearTimeout(timer);
-       } else {
-           if (second > 0 && !isTypePlay) {
-               timer = setTimeout(() => {
-                   setSecond(second -1);
-               }, 1000);
-           } else {
-               if (!isTypePlay && second === 0) {
-                   handleWinGame(null);
-               }
-               setSecond(-1);
-           }
+        console.log('call countdown', isWin, second);
+        let timer;
+        let oppTimer;
+
+        if (isWin) {
+            clearTimeout(timer);
+            clearTimeout(oppTimer);
+            setSecond(null);
+            setOppSecond(null);
+        } 
+        else if (!isTypePlay && second > 0) {
+            timer = setTimeout(() => {
+                setSecond(second - 1);
+            }, 1000);
+            setOppSecond(null);
+        } 
+        else if (!isTypePlay && second === 0) {
+            handleWinGame(null);
+            setSecond(null);
+        }
+        else if (isTypePlay && oppSecond > 0) {
+            oppTimer = setTimeout(() => {
+                setOppSecond(oppSecond - 1);
+            }, 1000);
+            setSecond(null);
+        }
+        else if (isTypePlay && oppSecond === 0) {
+            setOppSecond(null);
+        }
+       
+        return () => {
+            if (!second && isTypePlay) {
+                clearTimeout(timer);
+            }
+            else if (!oppSecond && !isTypePlay) {
+                clearTimeout(oppTimer);
+            }
        }
-       return () => {
-           if (second === -1 && isTypePlay) {
-               clearTimeout(timer);
-           }
-       }
-   }, [second, isWin]);
+   }, [second, oppSecond, isWin]);
 
     function handlePlayGame(squares) {
         const currentPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? hostPlayer.displayname :guestPlayer.displayname;
         const nextPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? guestPlayer.displayname : hostPlayer.displayname;
         const msg = currentPlayer +  ' đã đi -> Đến lượt ' + nextPlayer;
         socket.emit('play-caro', [match._id, squares, msg]);
-        setSecond(-1);
+        setSecond(null);
+        setOppSecond(duration);
         setIsTypePlay(true);
         setMessage(msg);
     }
@@ -265,67 +321,76 @@ export default function TableItem({socket}) {
 
     return (
         <React.Fragment>
-            <div style={{flexGrow: 1}}>
-                <Typography className={classes.title} variant='h5' component='h6'>
-                    Tên phòng: {board? board.title: 'XO'}
-                </Typography >
-                <Typography className={classes.title} variant='h6' component='h6'>
-                    Miêu tả: {board? board.description: 'etc'}
-                </Typography>
-                <Grid container spacing={3} style={{justifyContent: 'center', marginBottom: '10px'}}>
-                    {isHost ? (<Grid item xs={3}>
-                        <Button onClick={() => {startGame(); setReadyStart(false)}} disabled={!readyStart} variant="contained" color="secondary">
-                            Bắt đầu
-                        </Button>
-                    </Grid>) : null}
-                    {/*<Grid item xs={3}>
-                        <Button onClick={() => {
-                            setReplay(true);
-                            handlePlayGame(Array(board.size*board.size).fill(null));
-                            setNewSquare(Array(board.size*board.size).fill(null));
-                            setWinLine(null);
-                        }}  variant="contained" color="primary"
-                        disabled={replay}>
-                            Chơi lại
-                        </Button>
-                    </Grid>*/}
-                    <Grid item xs={3}>
-                        <Button onClick={() => {
-                            setOpenHistory(true);
-                            renderHistoryList();
-                        }}  variant="contained" color="primary">
-                            Xem lịch sử
-                        </Button>
-                    </Grid>
-                </Grid>
-                {isWin ? (<Typography>{messageWin}</Typography>) :
-                    (<React.Fragment>
-                        <Typography>{message}</Typography>
-                        {second === -1 ? (<Typography/>) : (<Typography>Thời gian: {second}s</Typography>)}
-                    </React.Fragment>)}
-
-            </div>
-            <div className={classes.root} style={{width: 'max-content', alignItems: 'stretch', background: "#8f5f0e"}} >
-                <div>
-                    {isStart ? (<Game dimension={board? board.size : 0}
-                                      handlePlayGame={(squares) =>handlePlayGame(squares)}
-                                      handleWinGame={(line) => handleWinGame(line)}
-                                      handleReplay={() => handleReplay()}
-                                      newSquares={newSquare}
-                                      newWinLine={winLine}
-                                      isWin={isWin}
-                    />): null}
-                </div>
-                <div style={{background: '#0ace5b'}}>
-                    <div>
-                        <PlayingUserInfo />
+            <div className={classes.root} style={{ alignItems: 'stretch', background: 'transparent' }} >
+                <div style={{width: '590px'}}>
+                    {/* <Game dimension={board ? board.size : 0}
+                            handlePlayGame={(squares) => handlePlayGame(squares)}
+                            handleWinGame={(line) => handleWinGame(line)}
+                            handleReplay={() => handleReplay()}
+                            newSquares={newSquare}
+                            newWinLine={winLine}
+                            isWin={isWin}
+                        /> */}
+                        {isStart ? (<Game dimension={board ? board.size : 0}
+                            handlePlayGame={(squares) => handlePlayGame(squares)}
+                            handleWinGame={(line) => handleWinGame(line)}
+                            handleReplay={() => handleReplay()}
+                            newSquares={newSquare}
+                            newWinLine={winLine}
+                            isWin={isWin}
+                        />) : null}
                     </div>
+                <div style={{ background: '#0ace5b', width: '200px' }}>
                     <div>
+                        <div style={{ flexGrow: 1 }}>
+                            <Typography className={classes.title} variant='h5' component='h6'>
+                                Tên phòng: {board ? board.title : 'XO'}
+                            </Typography >
+                            <Typography className={classes.title} variant='h6' component='h6'>
+                                Miêu tả: {board ? board.description : 'etc'}
+                            </Typography>
+                            <Grid container style={{ marginBottom: '5px', marginLeft: '10px' }}>
+                                <Grid style={{width: '70px', marginRight: '20px'}}>
+                                    {isHost ? (
+                                        <Button onClick={() => { startGame(); setReadyStart(false) }} disabled={!readyStart} variant="contained" color="secondary">
+                                            Bắt đầu
+                                        </Button>)
+                                    : null}
+                                </Grid>
+                                {/*<Grid item xs={3}>
+                                    <Button onClick={() => {
+                                        setReplay(true);
+                                        handlePlayGame(Array(board.size*board.size).fill(null));
+                                        setNewSquare(Array(board.size*board.size).fill(null));
+                                        setWinLine(null);
+                                    }}  variant="contained" color="primary"
+                                    disabled={replay}>
+                                        Chơi lại
+                                    </Button>
+                                </Grid>*/}
+                                <Grid style={{width: '90px'}}>
+                                    <Button onClick={() => {
+                                        setOpenHistory(true);
+                                        renderHistoryList();
+                                    }} variant="contained" color="primary">
+                                        Xem lịch sử
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                            {isWin ? (<Typography style={{fontSize: '12px', marginLeft: '2px', color: 'red', marginBottom: '-10px', height: '30px'}}>{messageWin}</Typography>) :
+                                (<React.Fragment>
+                                    <Typography style={{fontSize: '12px', marginLeft: '2px', color: 'blue', marginBottom: '-10px', height: '30px'}}>{message}</Typography>
+                                    {/* {second === -1 ? (<Typography />) : (<Typography>Thời gian: {second}s</Typography>)} */}
+                                </React.Fragment>)}
+                        </div>
+                        <PlayingUserList second={second} oppSecond={oppSecond} hostPlayerId={hostPlayerId} />
+                    </div>
+                    {/* <div>
                         <Audience />
-                    </div>
+                    </div> */}
                 </div>
                 <div>
-                    <Chat socket={socket}/>
+                    <Chat socket={socket} />
                 </div>
             </div>
 
@@ -334,12 +399,12 @@ export default function TableItem({socket}) {
                 <DialogContent>
                     <List>
                         {
-                            history? history.map(el => (
+                            history ? history.map(el => (
                                 <ListItem>
                                     {/*<ListItemText*/}
                                     {/*    primary={`${el.date} - ${el.winner.displayname} win`}*/}
                                     {/*/>*/}
-                                    <Typography style={{color: 'blue'}}>{`${el.date} | "${el.winner.displayname}" THẮNG`}</Typography>
+                                    <Typography style={{ color: 'blue' }}>{`${el.date} | "${el.winner.displayname}" THẮNG`}</Typography>
                                 </ListItem>
                             )) : null
                         }
