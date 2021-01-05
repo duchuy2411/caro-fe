@@ -115,7 +115,7 @@ export default function TableItem({socket}) {
                 if (board.id_user1 === JSON.parse(sessionStorage.currentuser)._id) {
                     setIsHost(true);
                     dispatch(addHost({ hostUser: JSON.parse(sessionStorage.currentuser) }));
-                    setHostPlayerId(board.id_user1)
+                    setHostPlayerId(board.id_user1);
                 }
                 else {
                     setIsHost(false);
@@ -400,7 +400,7 @@ export default function TableItem({socket}) {
                     </div> */}
                 </div>
                 <div>
-                    <Chat socket={socket} />
+                    <Chat socket={socket} board={board} match={match}/>
                 </div>
             </div>
 

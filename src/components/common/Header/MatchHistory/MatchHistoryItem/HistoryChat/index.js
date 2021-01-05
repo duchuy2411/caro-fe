@@ -6,14 +6,14 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-export default function Chat({id_board}) {
+export default function Chat({id_match}) {
     
     const classes = useStyles();
 
     let [itemChatList, setItemChatList] = useState([<li></li>]);
 
     function getItemChatList() {
-        axios.get('messages/' + id_board)
+        axios.get('messages/boardmatch/' + id_match)
         .then(res => {
             let messageList = res.data.data;
             let currentItemChatList = [];
@@ -41,7 +41,7 @@ export default function Chat({id_board}) {
             <div style={{height: 50, color: 'red', textAlign: 'center'}}>
                 <h1>Chat</h1>
             </div>
-            <div  style={{borderWidth: 'thin', borderStyle: 'solid', borderColor: 'black', height: '610px', overflowX: 'hidden'}}>
+            <div  style={{borderWidth: 'thin', borderStyle: 'solid', borderColor: 'black', height: '530px', overflowX: 'hidden'}}>
                 <ul id="chatAreaContent" style={{textAlign: 'left', listStyleType: 'none', display: 'inline'}}>
                     {itemChatList}
                 </ul>

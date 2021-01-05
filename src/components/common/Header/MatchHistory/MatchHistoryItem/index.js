@@ -52,6 +52,7 @@ export default function MatchHistoryItem(){
     const [userInfoView, setUserInfoView] = useState([]);
     const [moveListView, setMoveListView] = useState([]);
     const [squares, setSquares] = useState(matchHistoryItem.step[0].squares);
+    const [message, setMessage] = useState("Game start");
 
     let oldMoveListButton;
 
@@ -120,7 +121,7 @@ export default function MatchHistoryItem(){
 
     function jumpTo(move) {
         setSquares(matchHistoryItem.step[move].squares);
-
+        setMessage(matchHistoryItem.step[move].message);
     }
 
     async function displayUserInfoDialog(iduser) {
@@ -153,17 +154,20 @@ export default function MatchHistoryItem(){
                             {userInfoView}
                         </List>
                     </div>
+                    <Typography variant="p" component="p" style={{fontWeight: 'bold', color: 'red', width: '150px', height:'80px', margin: 'auto'}} gutterBottom>
+                        {message}
+                    </Typography>
                     <Typography className={classes.title} variant="p" component="p" style={{fontWeight: 'bold'}} gutterBottom>
                         Move List
                     </Typography>
-                    <div style={{overflowX: 'hidden', height: '280px'}}>
+                    <div style={{overflowX: 'hidden', height: '120px'}}>
                         <ul style={{listStyleType: 'none'}}>
                             {moveListView}
                         </ul>
                     </div>
                 </div>
                 <div>
-                    <HistoryChat id_board={matchHistoryItem.id_board} />
+                    <HistoryChat id_match={matchHistoryItem.id_match} />
                 </div>
             </div>
                 

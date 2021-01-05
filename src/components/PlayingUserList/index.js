@@ -83,7 +83,7 @@ export default function PlayingUserInfo({second, oppSecond, hostPlayerId }) {
                                         </Typography>
                                     </div>
                                 </div>
-                                <div style={{marginLeft: '10px'}}>
+                                <div style={{marginLeft: '5px'}}>
                                     <Typography style={{color: 'greenyellow', fontWeight: 'bold'}} variant="p" component="p" gutterBottom>
                                         {playingUserList[0].displayname}
                                     </Typography>
@@ -118,7 +118,7 @@ export default function PlayingUserInfo({second, oppSecond, hostPlayerId }) {
                                     </Typography>
                                 </div>
                             </div>
-                            <div style={{marginLeft: '10px'}}>
+                            <div style={{marginLeft: '5px'}}>
                                 <Typography style={{color: 'greenyellow', fontWeight: 'bold'}} variant="p" component="p" gutterBottom>
                                     {playingUserList[1].displayname}
                                 </Typography>
@@ -159,7 +159,7 @@ export default function PlayingUserInfo({second, oppSecond, hostPlayerId }) {
                                         </Typography>
                                     </div>
                                 </div>
-                                <div style={{marginLeft: '10px'}}>
+                                <div style={{marginLeft: '5px'}}>
                                     <Typography style={{color: 'greenyellow', fontWeight: 'bold'}} variant="p" component="p" gutterBottom>
                                         {playingUserList[0].displayname}
                                     </Typography>
@@ -194,7 +194,7 @@ export default function PlayingUserInfo({second, oppSecond, hostPlayerId }) {
                                     </Typography>
                                 </div>
                             </div>
-                            <div style={{marginLeft: '10px'}}>
+                            <div style={{marginLeft: '5px'}}>
                                 <Typography style={{color: 'greenyellow', fontWeight: 'bold'}} variant="p" component="p" gutterBottom>
                                     {playingUserList[1].displayname}
                                 </Typography>

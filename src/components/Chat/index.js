@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import axios from 'axios';
+import axios from '../../utils/axios';
 
 import {
     BrowserRouter as Router,
@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
 
 //const socket = io('http://localhost:8000');
 
-export default function Chat({socket}) {
+export default function Chat({socket, board, match}) {
     const classes = useStyles();
     
     const [inp, setInp] = useState("");
@@ -26,61 +26,58 @@ export default function Chat({socket}) {
     const [currentUser, setCurrentUser] = useState(JSON.parse(sessionStorage.getItem('currentuser')));
 
     let [itemChatList, setItemChatList] = useState([<li></li>]);
-    let url = window.location.href;
-    let boardCode = url.slice(url.lastIndexOf('/') + 1);
 
     function getItemChatList() {
-        axios.get('http://localhost:8000/messages/' + boardCode)
-        .then(res => {
-            let messageList = res.data.data;
-            let currentItemChatList = [];
-            messageList.map((messageItem) => {
-                let itemChatContent = messageItem.fromDisplayName + ": " + messageItem.content;
-                currentItemChatList.push(renderItemChat(itemChatContent));
+        if (board) {
+            axios.get('messages/boardid/' + board._id)
+            .then(res => {
+                let messageList = res.data.data;
+                let currentItemChatList = [];
+                messageList.map((messageItem) => {
+                    let itemChatContent = messageItem.fromDisplayName + ": " + messageItem.content;
+                    currentItemChatList.push(renderItemChat(itemChatContent));
+                })
+                setItemChatList(currentItemChatList);
             })
-            setItemChatList(currentItemChatList);
-        })
-        .catch(err => {
-            console.log(err)
-        })
-    }
-    // useEffect(() => {
-    // }, []);
-
-    
-  useEffect(() => {
-    getItemChatList();
-    
-  }, [itemChatList.length])
-
-  // Lắng nge khi trong room có người chat
-  useEffect(() => {
-    if (socket) {
-        // nghe tin nhắn từ room
-        socket.on('update-area-chat', function(data) {
-          // console.log("room message:", data);
-          // setNewMess(data);
-          // let newArr = [...arrayMessage];
-          // newArr.push(data);
-          // // cập nhật giao diện
-          // setArrayMessage(newArr);
-  
-          //getItemChatList();
-          let newItemChatList = itemChatList.slice();
-          let newItemChatContent = data.fromDisplayName + ": " + data.content;
-          newItemChatList.push(renderItemChat(newItemChatContent));
-          setItemChatList(newItemChatList);
-          
-        })
-      }
-      return () => {
-        if(socket){
-          // nghe xong xóa
-          socket.removeAllListeners('update-area-chat', function(){ })
+            .catch(err => {
+                console.log(err)
+            })
         }
-      }
-      // chỉ kích hoạt lại khi socket thay đổi
-  }, [socket])
+    }
+
+    useEffect(() => {
+        getItemChatList();
+        
+    }, [itemChatList.length, board])
+
+    // Lắng nge khi trong room có người chat
+    useEffect(() => {
+        if (socket) {
+            // nghe tin nhắn từ room
+            socket.on('update-area-chat', function(data) {
+            // console.log("room message:", data);
+            // setNewMess(data);
+            // let newArr = [...arrayMessage];
+            // newArr.push(data);
+            // // cập nhật giao diện
+            // setArrayMessage(newArr);
+    
+            //getItemChatList();
+            let newItemChatList = itemChatList.slice();
+            let newItemChatContent = data.fromDisplayName + ": " + data.content;
+            newItemChatList.push(renderItemChat(newItemChatContent));
+            setItemChatList(newItemChatList);
+            
+            })
+        }
+        return () => {
+            if(socket){
+            // nghe xong xóa
+            socket.removeAllListeners('update-area-chat', function(){ })
+            }
+        }
+        // chỉ kích hoạt lại khi socket thay đổi
+    }, [socket])
 
     function renderItemChat(itemChatContent) {
         return (<li>{itemChatContent}</li>)
@@ -88,6 +85,7 @@ export default function Chat({socket}) {
 
     function submitChat(e) {
         e.preventDefault();
+        
         let content = document.getElementById("content").value;
         if (!content) {
             alert('Vui lòng nhập nội dung chat');
@@ -99,7 +97,9 @@ export default function Chat({socket}) {
         }
         document.getElementById("content").value = "";
         if (socket) {
-            socket.emit('send-message', {fromUsername: currentUser.username, fromDisplayName: currentUser.displayname, fromBoardId: boardCode, content: content});
+            let idMatch = match ? match._id : "";
+            socket.emit('send-message', {fromUsername: currentUser.username, fromDisplayName: currentUser.displayname, 
+                fromBoardId: board._id, fromBoardMatch: idMatch, content: content});
         }
         //getItemChatList();
         let newItemChatList = itemChatList.slice();

@@ -43,7 +43,7 @@ export default function MatchHistory() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const api_match = await axios.get("boards/getmatch/" + iduser);
+                const api_match = await axios.get("matchs/iduser/" + iduser);
                 if (api_match.data.data) {
                     setMatchList(api_match.data.data);
                     renderMatchListView();
@@ -75,7 +75,7 @@ export default function MatchHistory() {
 
     function renderMatchItemView(match) {
         let title = match.displayname_user1 + " vs " + match.displayname_user2;
-        const matchHistoryItemLink = "/match-history/" + iduser + "/" + match.id_board;
+        const matchHistoryItemLink = "/match-history/" + iduser + "/" + match._id;
         return (
             <div style={{marginBottom: '20px', background: 'cyan'}}>
                 <ListItem style={{marginLeft: '100px'}}>
