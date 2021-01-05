@@ -117,7 +117,7 @@ export default function Chat({socket}) {
     // });
 
     return (
-        <div style={{width: 250, backgroundImage: 'url("https://i.gifer.com/3w8M.gif")'}}>
+        <div style={{width: 228, backgroundImage: 'url("https://i.gifer.com/3w8M.gif")'}}>
             <div style={{height: 50, color: 'red', textAlign: 'center'}}>
                 <h1>Chat</h1>
             </div>

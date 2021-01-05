@@ -47,7 +47,7 @@ export default function Profile({}) {
             return;
         }
 
-        const api = await axios.post("api/users/update-profile", {iduser: currentUser._id, newPassword: newPassword, newDisplayName: newDisplayName, fileName: fileName, oldPassword: currentUser.password});
+        const api = await axios.post("api/users/update-profile", {iduser: currentUser._id, newPassword: newPassword, newDisplayName: newDisplayName, fileName: fileName});
         alert(api.data.message);
         if (api.data.data) {
             setCurrentUser(api.data.data);
@@ -90,8 +90,7 @@ export default function Profile({}) {
                             <input type="text" name="email" value={currentUser.email} size={inputSize}/>
                         </div>
                         
-                        <input type="password" name="password" placeholder="Type new password if you need" size={inputSize}/>
-                        <input type="password" name="retypepassword" placeholder="Retype new password" size={inputSize}/>
+                        
                     </div>
                     <div style={{display: 'inline-block', flex: 'right', marginLeft: '50px'}}>
                         <div>Avatar</div>
@@ -99,6 +98,8 @@ export default function Profile({}) {
                         <input id="fileName" type="file" onChange={() =>{ setFileName("D:/" + document.getElementById("fileName").files[0].name); }}/>
                     </div>
                 </div>
+                <input type="password" name="password" placeholder="Type new password if you need. If not, type again old password" style={{width: '450px'}} required/>
+                <input type="password" name="retypepassword" placeholder="Retype password" style={{width: '450px'}} required/>
                 <input type="submit" name="signup_submit" value="UPDATE PROFILE" style={{width: '150px'}}/>
             </form>
         </div>
