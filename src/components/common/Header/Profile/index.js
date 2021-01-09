@@ -2,6 +2,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import React, { useEffect, useState, useLocation } from 'react';
 import axios from '../../../../utils/axios';
 import convertAvatarPropToString from '../../../../utils/binaryToString';
+import getFormattedDate from '../../../../utils/date';
 
 const useStyles = makeStyles((theme) => ({
     infoLineStyle: {
@@ -75,7 +76,7 @@ export default function Profile({}) {
                         </div>
                         <div className={classes.infoLineStyle}>
                             <label className={classes.labelStyle}>JoinDate</label>
-                            <input type="text" name="joindate" defaultValue={currentUser.join_date} size={inputSize} disabled="true"/>
+                            <input type="text" name="joindate" defaultValue={getFormattedDate(new Date(currentUser.join_date))} size={inputSize} disabled="true"/>
                         </div>
                         <div className={classes.infoLineStyle}>
                             <label className={classes.labelStyle}>Statistic</label>

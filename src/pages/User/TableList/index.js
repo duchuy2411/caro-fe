@@ -290,7 +290,7 @@ export default function TableList({socket}) {
                 remainingIdUser = listIdUser[1];
             else
                 remainingIdUser = listIdUser[0];
-            await createNewTable(currentUser.displayname, "Caro Open", "Surewin");
+            await createNewTable(currentUser.displayname, "Caro Open", "");
             await socket.emit("invite-user-clicked-quick-play", [currentUser._id, remainingIdUser]);
             await setOpenLoading(false);
             //alert(listIdUser[0] + "+" + listIdUser[1]);

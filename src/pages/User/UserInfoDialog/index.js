@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectUserInfoDialog, closeUserInfoDialog } from '../../../store/slice/userInfoDialogSlice';
 
 import convertAvatarPropToString from '../../../utils/binaryToString';
+import getFormattedDate from '../../../utils/date';
 
 //let [openUserInfoDialog, setOpenUserInfoDialog] = useState(false);
 const useStyles = makeStyles((theme) => ({
@@ -57,7 +58,7 @@ export default function UserInfo({socket}){
                         {userInfoDialog.displayName}
                     </Typography>
                     <Typography className={classes.title} style={{ color: 'black' }} variant="p" component="p" gutterBottom>
-                        Join Date: {userInfoDialog.joinDate}
+                        Join Date: {getFormattedDate(new Date(userInfoDialog.joinDate))}
                     </Typography>
                     <Typography className={classes.title} style={{ color: 'blue' }} variant="p" component="p" gutterBottom>
                         {userInfoDialog.statistic}

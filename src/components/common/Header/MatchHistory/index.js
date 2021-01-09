@@ -10,6 +10,7 @@ import Typography from '@material-ui/core/Typography';
 import axios from "../../../..//utils/axios";
 import { useDispatch } from 'react-redux';
 import { matchHistoryItemUpdated } from '../../../../store/slice/matchHistoryItemSlice';
+import getFormattedDate from '../../../../utils/date';
 
 import {
     BrowserRouter as Router,
@@ -76,8 +77,10 @@ export default function MatchHistory() {
     function renderMatchItemView(match) {
         let title = match.displayname_user1 + " vs " + match.displayname_user2;
         const matchHistoryItemLink = "/match-history/" + iduser + "/" + match._id;
+        let createdAt = new Date(match.createdAt);
+
         return (
-            <div style={{marginBottom: '20px', background: 'cyan'}}>
+            <div style={{marginBottom: '20px', backgroundImage: 'url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSF8tq7J9mu_6vdiGTDAMwY9hC5t_ti2ukrhg&usqp=CAU")'}}>
                 <ListItem style={{marginLeft: '100px'}}>
                     <Link to={matchHistoryItemLink}>
                         <ListItemAvatar style={{marginRight: '60px'}} onClick={() => displayMatchHistoryItem(match)}>
@@ -89,13 +92,13 @@ export default function MatchHistory() {
                             <Typography variant="body2" color="error" style={{fontWeight: 'bold'}}>
                                 {title}
                             </Typography>
-                            <Typography variant="body2" color="textPrimary">
-                                Diễn ra vào {match.createdAt}
+                            <Typography variant="body2" style={{color: "greenyellow", fontWeight: 'bold'}}>
+                                Diễn ra vào {getFormattedDate(createdAt)}
                             </Typography>
-                            <Typography variant="body2" color="textPrimary">
-                                Người thắng: {match.win}
+                            <Typography variant="body2" style={{color: "orange", fontWeight: 'bold'}}>
+                                Người thắng: {match.displayname_win}
                             </Typography>
-                            <Typography variant="body2" color="textPrimary">
+                            <Typography variant="body2" style={{color: "blue", fontWeight: 'bold'}}>
                                 Số nước đi: {match.step.length}
                             </Typography>
                         </React.Fragment>
