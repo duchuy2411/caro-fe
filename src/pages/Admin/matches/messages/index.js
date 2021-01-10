@@ -26,6 +26,7 @@ function MessagesList({ source ,record = {} }) {
     const classes = useStyles();
 
     function renderList() {
+        if (!record[source])  return;
         return record[source].map(el => {
             return (
                 <React.Fragment>

@@ -16,9 +16,7 @@ class BlockButton extends Component {
         const updatedRecord = { ...record, block: record.block === 0? 1 : 0 };
         axios.post(`/admin/users/${record.id}/block`, updatedRecord)
             .then(() => {
-                showNotification('đã block');
-                this.props.record = updatedRecord;
-                this.setState({block: updatedRecord.block});
+                window.location.reload();
             });
     }
 
