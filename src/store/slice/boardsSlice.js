@@ -28,7 +28,16 @@ export const addNewBoard = createAsyncThunk('boards/addNewBoard', async (initBoa
 const boardSlice = createSlice({
     name: 'boards',
     initialState,
-    reducers: {},
+    reducers: {
+        boardUpdated(state, action) {
+            const { newBoard } = action.payload;
+            const existingBoard = state.entities[newBoard._id];
+            if (existingBoard) {
+                existingBoard.id_user1 = newBoard.id_user1;
+                existingBoard.id_user2 = newBoard.id_user2;
+            }
+        }
+    },
     extraReducers: {
         [fetchBoards.fulfilled]: (state, action) => {
             state.status = 'succeeded';
@@ -41,6 +50,8 @@ const boardSlice = createSlice({
         [addNewBoard.fulfilled]: boardsAdapter.addOne,
     },
 });
+
+export const { boardUpdated } = boardSlice.actions;
 
 export default boardSlice.reducer;
 

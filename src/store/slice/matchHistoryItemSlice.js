@@ -30,7 +30,7 @@ const matchHistoryItemSlice = createSlice({
             const { matchHistoryItem } = action.payload;
             state[0] = {
                 step: matchHistoryItem.step,
-                win: matchHistoryItem.win,
+                displayname_win: matchHistoryItem.displayname_win,
                 size: matchHistoryItem.size,
                 id_board: matchHistoryItem.id_board,
                 id_match: matchHistoryItem._id,

@@ -13,9 +13,14 @@ import Button from '@material-ui/core/Button';
 
 import HistoryGame from './HistoryGame';
 import HistoryChat from './HistoryChat';
+import PlayingUserList from '../../../../../components/PlayingUserList';
 import { fetchUserInfoDialog } from '../../../../../store/slice/userInfoDialogSlice';
+import { addHostAndGuest } from '../../../../../store/slice/playingUsersSlice';
 
 import { useDispatch } from 'react-redux';
+
+import axios from '../../../../../utils/axios';
+import getFormattedDate from '../../../../../utils/date';
 
 const useStyles = makeStyles((theme) => ({
     navigationStyle: {
@@ -49,25 +54,31 @@ export default function MatchHistoryItem(){
         padding: 0,
     };
     const matchHistoryItem = useSelector(selectMatchHistoryItem);
-    const [userInfoView, setUserInfoView] = useState([]);
     const [moveListView, setMoveListView] = useState([]);
     const [squares, setSquares] = useState(matchHistoryItem.step[0].squares);
     const [message, setMessage] = useState("Game start");
 
     let oldMoveListButton;
-
+    const [createdAt, setCreatedAt] = useState(null);
     useEffect(() => {
-        renderUserInfoViews();
+        axios.get("api/users/id/" + matchHistoryItem.id_user1)
+            .then(res => {
+                if (res.data.data) {
+                    const user1 = res.data.data.user;
+                    axios.get("api/users/id/" + matchHistoryItem.id_user2)
+                        .then(res => {
+                            if (res.data.data) {
+                                const user2 = res.data.data.user;
+                                dispatch(addHostAndGuest({ hostUser: user1, guestUser: user2 }))
+                            }})
+                        .catch(err => {})
+                }
+            })
+            .catch(err => {})
+
+        setCreatedAt(getFormattedDate(new Date(matchHistoryItem.createdAt)));
         renderMoveList();
     }, [matchHistoryItem.step.length]);
-
-
-    function renderUserInfoViews() {
-        let result = [];
-        result.push(renderUserInfoView(matchHistoryItem.id_user1, matchHistoryItem.displayname_user1));
-        result.push(renderUserInfoView(matchHistoryItem.id_user2, matchHistoryItem.displayname_user2));
-        setUserInfoView(result);
-    }
 
     function renderMoveList() {
         const moves = matchHistoryItem.step.map((step, move) => {
@@ -83,28 +94,6 @@ export default function MatchHistoryItem(){
             );
         });
         setMoveListView(moves);
-    }
-
-    function renderUserInfoView(iduser, displayname) {
-        return (
-            <ListItem key={iduser}>
-                <Card variant="outlined" className={ classes.playingUserInfoStyle }>
-                    <CardContent>
-                        <div>
-                            <Button onClick={() => displayUserInfoDialog(iduser)}>
-                                <Avatar variant="square"  src='/img/user-icon.jpg' style={{width: 50, height: 50}}></Avatar>
-                            </Button>
-                        </div>
-                        <Typography className={classes.title} variant="p" component="p" style={{fontWeight: 'bold'}} gutterBottom>
-                            {displayname}
-                        </Typography>
-                        {/* <Typography className={classes.title} style={{color: 'blue'}} variant="p" component="p" gutterBottom>
-                            Elo: 1600
-                        </Typography> */}
-                    </CardContent>
-                </Card>
-            </ListItem>
-        )
     }
 
     function selectMove(move, e) {
@@ -124,10 +113,6 @@ export default function MatchHistoryItem(){
         setMessage(matchHistoryItem.step[move].message);
     }
 
-    async function displayUserInfoDialog(iduser) {
-        await dispatch(fetchUserInfoDialog({iduser}));
-    }
-
     return (
         <div  style={{width: 'max-content', margin: 'auto', marginTop: '30px'}} >
             <div>
@@ -135,10 +120,10 @@ export default function MatchHistoryItem(){
                     Tường thuật trận đấu giữa {matchHistoryItem.displayname_user1} và {matchHistoryItem.displayname_user2}
                 </Typography >
                 <Typography className={classes.title} variant='h5' component='h6'>
-                    Diễn ra vào {matchHistoryItem.createdAt}
+                    Diễn ra vào {createdAt}
                 </Typography >
                 <Typography className={classes.title} variant='h5' component='h6'>
-                    Người thắng: {matchHistoryItem.win}
+                    Người thắng: {matchHistoryItem.displayname_win}
                 </Typography >
                 <Typography className={classes.title} variant='h5' component='h6'>
                     Số nước đi: {matchHistoryItem.step.length}
@@ -150,17 +135,20 @@ export default function MatchHistoryItem(){
                 </div>
                 <div style={{background: '#0ace5b'}}>
                     <div>
-                        <List style={{ width: 200 }}>
+                        <div style={{width: 200}}>
+                            <PlayingUserList second={null} oppSecond={null} hostPlayerId={matchHistoryItem.id_user1} />
+                        </div>
+                        {/* <List style={{ width: 200 }}>
                             {userInfoView}
-                        </List>
+                        </List> */}
                     </div>
-                    <Typography variant="p" component="p" style={{fontWeight: 'bold', color: 'red', width: '150px', height:'80px', margin: 'auto'}} gutterBottom>
+                    <Typography variant="p" component="p" style={{fontWeight: 'bold', color: 'red', width: '150px', height:'80px', margin: 'auto', marginTop: '-15px'}} gutterBottom>
                         {message}
                     </Typography>
-                    <Typography className={classes.title} variant="p" component="p" style={{fontWeight: 'bold'}} gutterBottom>
+                    <Typography className={classes.title} variant="p" component="p" style={{fontWeight: 'bold', marginTop: '-10px'}} gutterBottom>
                         Move List
                     </Typography>
-                    <div style={{overflowX: 'hidden', height: '120px'}}>
+                    <div style={{overflowX: 'hidden', height: '90px'}}>
                         <ul style={{listStyleType: 'none'}}>
                             {moveListView}
                         </ul>
@@ -170,10 +158,6 @@ export default function MatchHistoryItem(){
                     <HistoryChat id_match={matchHistoryItem.id_match} />
                 </div>
             </div>
-                
-                {/* <div>
-                    <Chat socket={socket}/>
-                </div> */}
-            </div>
+        </div>
     )
 }
