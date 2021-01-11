@@ -25,6 +25,14 @@ export const addNewBoard = createAsyncThunk('boards/addNewBoard', async (initBoa
     return response.data.data;
 })
 
+export const addNewBoardNotUpdateDB = createAsyncThunk('boards/addNewBoardNotUpdateDB', async (newBoard) => {
+    return newBoard;
+})
+
+// export const boardUpdated = createAsyncThunk('boards/boardUpdated', async (newBoard) => {
+//     return newBoard;
+// })
+
 const boardSlice = createSlice({
     name: 'boards',
     initialState,
@@ -35,6 +43,7 @@ const boardSlice = createSlice({
             if (existingBoard) {
                 existingBoard.id_user1 = newBoard.id_user1;
                 existingBoard.id_user2 = newBoard.id_user2;
+                existingBoard.state = newBoard.state;
             }
         }
     },
@@ -48,6 +57,7 @@ const boardSlice = createSlice({
             state.error = action.payload;
         },
         [addNewBoard.fulfilled]: boardsAdapter.addOne,
+        [addNewBoardNotUpdateDB.fulfilled]: boardsAdapter.addOne
     },
 });
 

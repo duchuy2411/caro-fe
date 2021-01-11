@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useLocation } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     selectAllBoards,
     selectBoardById,
@@ -8,6 +8,7 @@ import {
     fetchBoards,
     addNewBoard,
     selectBoardByRoom,
+    boardUpdated
 } from '../../../../store/slice/boardsSlice';
 
 import { addGuest, addHost, addHostAndGuest } from '../../../../store/slice/playingUsersSlice';
@@ -38,7 +39,7 @@ import PlayingUserList from '../../../../components/PlayingUserList';
 import Audience from '../../../../components/Audience/index.js';
 import Chat from '../../../../components/Chat/index.js';
 import axios from "../../../../utils/axios";
-import {Grid} from "@material-ui/core";
+import { Grid } from "@material-ui/core";
 import socketio from 'socket.io-client';
 
 //import env from '../../env.json';
@@ -76,11 +77,11 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function TableItem({socket}) {
+export default function TableItem({ socket }) {
     const classes = useStyles();
     const dispatch = useDispatch();
     const boardStatus = useSelector((state) => state.boards.status);
-    const board = useSelector((state) => selectBoardByRoom(state,window.location.pathname.split('/')[2]))[0];
+    let board = useSelector((state) => selectBoardByRoom(state, window.location.pathname.split('/')[2]))[0];
     const [match, setMatch] = useState();
     const [hostPlayer, setHostPlayer] = useState();
     const [guestPlayer, setGuestPlayer] = useState();
@@ -102,6 +103,8 @@ export default function TableItem({socket}) {
     const [messageWin, setMessageWin] = useState();
     const [hostPlayerId, setHostPlayerId] = useState("");
     const [displayHandOver, setDisplayHandOver] = useState(false);
+
+    const [canLeaveRoom, setCanLeaveRoom] = useState(true);
 
     useEffect(() => {
         if (boardStatus === 'idle') {
@@ -128,7 +131,7 @@ export default function TableItem({socket}) {
                                 setHostPlayerId(board.id_user1);
                             }
                         })
-                        .catch(err => {})
+                        .catch(err => { })
 
                 }
                 console.log('join');
@@ -156,12 +159,12 @@ export default function TableItem({socket}) {
                             dispatch(addGuest({ guestUser: user2 }));
                         }
                     })
-                    .catch(err => {})
+                    .catch(err => { })
             });
         }
-        else if (socket && isJoin && !isHost) {
-            dispatch(addGuest({ guestUser: JSON.parse(sessionStorage.currentuser) }))
-        }
+        // else if (socket && isJoin && !isHost) {
+        //     dispatch(addGuest({ guestUser: JSON.parse(sessionStorage.currentuser) }))
+        // }
         return () => {
             if (socket) {
                 // nghe xong xóa
@@ -177,12 +180,14 @@ export default function TableItem({socket}) {
                 setMatch(newMatch);
                 setHostPlayer(user1);
                 setGuestPlayer(user2);
-                setNewSquare(Array(updateBoard.size*updateBoard.size).fill(null));
+                setNewSquare(Array(updateBoard.size * updateBoard.size).fill(null));
                 setIsWin(false);
                 setWinLine(null);
                 setHostPlayerId(user1._id);
                 setDisplayHandOver(true);
                 if (!isStart) setIsStart(true);
+
+                setCanLeaveRoom(false);
             });
         };
         return () => {
@@ -227,6 +232,8 @@ export default function TableItem({socket}) {
                     console.log('ready');
                     setReadyStart(true);
                 }
+
+                setCanLeaveRoom(true);
             });
         };
         return () => {
@@ -238,7 +245,7 @@ export default function TableItem({socket}) {
         }
     }, [socket, isHost])
 
-   useEffect(() => {
+    useEffect(() => {
         console.log('call countdown', isWin, second);
         let timer;
         let oppTimer;
@@ -276,13 +283,82 @@ export default function TableItem({socket}) {
             else if (!oppSecond && !isTypePlay) {
                 clearTimeout(oppTimer);
             }
-       }
-   }, [second, oppSecond, isWin]);
+        }
+    }, [second, oppSecond, isWin]);
+
+    useEffect(() => {
+        if (socket) {
+            socket.on('update-ui-leave-room', function (newBoard) {
+                setIsHost(false);
+                // handleWinGame
+                //const idLoser = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? match.id_user2 : match.id_user1;
+                //const msg = JSON.parse(sessionStorage.currentuser)._id + ' chiến thắng ' + idLoser;
+                //socket.emit('win-game', [match._id, JSON.parse(sessionStorage.currentuser)._id, idLoser, null, msg]);
+                //setIsWin(true);
+                dispatch(boardUpdated({ newBoard: newBoard }));
+                board = newBoard;
+                
+                if (board.id_user1 === JSON.parse(sessionStorage.currentuser)._id) {
+                    setIsHost(true);
+                    dispatch(addHostAndGuest({ hostUser: JSON.parse(sessionStorage.currentuser), guestUser: null }));
+                    setHostPlayerId(board.id_user1);
+                    setReadyStart(false);
+                    //setCanPlay(true);
+                }
+                setDuration(parseInt(board.time));
+                
+                // axios.get("api/users/id/" + board.id_user1)
+                //     .then(res => {
+                //         if (res.data.data) {
+                //             const user1 = res.data.data.user;
+                //             if (!board.id_user2) {
+                //                 dispatch(addHostAndGuest({ hostUser: user1, guestUser: null }));
+                //             }
+                //             else {
+                //                 axios.get("api/users/id/" + board.id_user2)
+                //                     .then(res => {
+                //                         if (res.data.data) {
+                //                             const user2 = res.data.data.user;
+                //                             dispatch(addHostAndGuest({ hostUser: user1, guestUser: user2 }))
+                //                         }})
+                //                     .catch(err => {})
+                //             }
+                //             setHostPlayerId(board.id_user1);
+                //             setIsStart(false);
+                //             setReadyStart(false);
+                //         }
+                //     })
+                //     .catch(err => {})
+                //     if (board.id_user1 === JSON.parse(sessionStorage.currentuser)._id) {
+                //         setIsHost(true);
+                //     }
+                //     setDuration(parseInt(board.time));
+            });
+        }
+        return () => {
+            if (socket) {
+                // nghe xong xóa
+                socket.removeAllListeners('update-ui-leave-room', function () {
+                })
+            }
+        }
+    }, [socket]);
+
+    useEffect(() => {
+        return () => {
+            leaveRoom();
+        };
+    }, []);
+
+    function leaveRoom() {
+        socket.emit('leave-room');
+        window.location.href = '/play';
+    }
 
     function handlePlayGame(squares) {
-        const currentPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? hostPlayer.displayname :guestPlayer.displayname;
+        const currentPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? hostPlayer.displayname : guestPlayer.displayname;
         const nextPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? guestPlayer.displayname : hostPlayer.displayname;
-        const msg = currentPlayer +  ' đã đi -> Đến lượt ' + nextPlayer;
+        const msg = currentPlayer + ' đã đi -> Đến lượt ' + nextPlayer;
         socket.emit('play-caro', [match._id, squares, msg]);
         setSecond(null);
         setOppSecond(duration);
@@ -291,7 +367,7 @@ export default function TableItem({socket}) {
     }
     function handleWinGame(line) {
         let msg;
-        const currentPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? hostPlayer.displayname :guestPlayer.displayname;
+        const currentPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? hostPlayer.displayname : guestPlayer.displayname;
         const nextPlayer = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? guestPlayer.displayname : hostPlayer.displayname;
         const idLoser = match.id_user1 === JSON.parse(sessionStorage.currentuser)._id ? match.id_user2 : match.id_user1;
         if (line) {
@@ -325,7 +401,7 @@ export default function TableItem({socket}) {
     return (
         <React.Fragment>
             <div className={classes.root} style={{ alignItems: 'stretch', background: 'transparent' }} >
-                <div style={{width: '590px'}}>
+                <div style={{ width: '590px' }}>
                     {/* <Game dimension={board ? board.size : 0}
                             handlePlayGame={(squares) => handlePlayGame(squares)}
                             handleWinGame={(line) => handleWinGame(line)}
@@ -334,15 +410,15 @@ export default function TableItem({socket}) {
                             newWinLine={winLine}
                             isWin={isWin}
                         /> */}
-                        {isStart ? (<Game dimension={board ? board.size : 0}
-                            handlePlayGame={(squares) => handlePlayGame(squares)}
-                            handleWinGame={(line) => handleWinGame(line)}
-                            handleReplay={() => handleReplay()}
-                            newSquares={newSquare}
-                            newWinLine={winLine}
-                            isWin={isWin}
-                        />) : null}
-                    </div>
+                    {isStart ? (<Game dimension={board ? board.size : 0}
+                        handlePlayGame={(squares) => handlePlayGame(squares)}
+                        handleWinGame={(line) => handleWinGame(line)}
+                        handleReplay={() => handleReplay()}
+                        newSquares={newSquare}
+                        newWinLine={winLine}
+                        isWin={isWin}
+                    />) : null}
+                </div>
                 <div style={{ background: '#0ace5b', width: '200px' }}>
                     <div>
                         <div style={{ flexGrow: 1 }}>
@@ -353,12 +429,19 @@ export default function TableItem({socket}) {
                                 Miêu tả: {board ? board.description : 'etc'}
                             </Typography>
                             <Grid container style={{ marginBottom: '5px', marginLeft: '10px' }}>
-                                <Grid style={{width: '70px', marginRight: '20px'}}>
+                                <Grid style={{ width: '70px', marginRight: '20px' }}>
                                     {isHost ? (
                                         <Button onClick={() => { startGame(); setReadyStart(false) }} disabled={!readyStart} variant="contained" color="secondary">
                                             Bắt đầu
                                         </Button>)
-                                    : null}
+                                        : null}
+                                </Grid>
+                                <Grid style={{width: '90px'}}>
+                                    <Button onClick={() => {
+                                        leaveRoom();
+                                    }} disabled={!canLeaveRoom} variant="contained" color="primary">
+                                        Rời bàn
+                                    </Button>
                                 </Grid>
                                 {/*<Grid item xs={3}>
                                     <Button onClick={() => {
@@ -379,17 +462,17 @@ export default function TableItem({socket}) {
                                         Xem lịch sử
                                     </Button>
                                 </Grid>*/}
-                                {isStart && displayHandOver? (<Grid item xs={3}>
+                                {isStart && displayHandOver ? (<Grid item xs={3}>
                                     <Button onClick={() => {
                                         handleWinGame(null);
-                                    }}  variant="contained" color="primary">
+                                    }} variant="contained" color="primary">
                                         Xin đầu hàng
                                     </Button>
                                 </Grid>) : null}
                             </Grid>
-                            {isWin ? (<Typography style={{fontSize: '12px', marginLeft: '2px', color: 'red', marginBottom: '-10px', height: '30px'}}>{messageWin}</Typography>) :
+                            {isWin ? (<Typography style={{ fontSize: '12px', marginLeft: '2px', color: 'red', marginBottom: '-10px', height: '30px' }}>{messageWin}</Typography>) :
                                 (<React.Fragment>
-                                    <Typography style={{fontSize: '12px', marginLeft: '2px', color: 'blue', marginBottom: '-10px', height: '30px'}}>{message}</Typography>
+                                    <Typography style={{ fontSize: '12px', marginLeft: '2px', color: 'blue', marginBottom: '-10px', height: '30px' }}>{message}</Typography>
                                     {/* {second === -1 ? (<Typography />) : (<Typography>Thời gian: {second}s</Typography>)} */}
                                 </React.Fragment>)}
                         </div>
@@ -400,7 +483,7 @@ export default function TableItem({socket}) {
                     </div> */}
                 </div>
                 <div>
-                    <Chat socket={socket} board={board} match={match}/>
+                    <Chat socket={socket} board={board} match={match} />
                 </div>
             </div>
 

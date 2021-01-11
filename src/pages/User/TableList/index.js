@@ -45,6 +45,8 @@ import {
     fetchBoards,
     addNewBoard,
     selectBoardByRoom,
+    addNewBoardNotUpdateDB,
+    boardUpdated
 } from '../../../store/slice/boardsSlice';
 
 const useStyles = makeStyles((theme) => ({
@@ -100,11 +102,11 @@ export default function TableList({socket}) {
         }
     }, [boardStatus, dispatch]);
 
-    useEffect(() => {
-        if (boardStatus === 'succeeded') {
-            setTableList(boards);
-        }
-    }, [boardStatus])
+    // useEffect(() => {
+    //     if (boardStatus === 'succeeded') {
+    //         setTableList(boards);
+    //     }
+    // }, [boardStatus, dispatch])
 
     useEffect(() => {
         if (socket) {
@@ -141,11 +143,46 @@ export default function TableList({socket}) {
         }
     }, [socket]);
 
+    useEffect(() => {
+
+        if (socket) {
+            socket.on('add-new-table', async function (newBoard) {
+                console.log('add-new-table')
+                await dispatch(addNewBoardNotUpdateDB(newBoard));
+                //setOnlineUserList(listOnline);
+            });
+        }
+
+        return () => {
+            if (socket) {
+                // nghe xong sự kiện list-online thì xóa
+                socket.removeAllListeners('add-new-table', () => { })
+            }
+        }
+    }, [socket]);
+    
+    useEffect(() => {
+
+        if (socket) {
+            socket.on('update-table', async function (newBoard) {
+                await dispatch(boardUpdated({ newBoard: newBoard }));
+                //setOnlineUserList(listOnline);
+            });
+        }
+
+        return () => {
+            if (socket) {
+                // nghe xong sự kiện list-online thì xóa
+                socket.removeAllListeners('update-table', () => { })
+            }
+        }
+    }, [socket]);
+
     function renderTableItem(tableId, title, description, state) {
         const path = '/play/' + tableId;
         let avatar;
         if (state == -1)
-            return;
+            return null;
         if (state == 1)
             avatar = '/img/waiting-table.png';
         else
@@ -197,7 +234,7 @@ export default function TableList({socket}) {
 
     function renderTableList() {
         let result = [];
-        tableList.map((tableItem) => result.push(renderTableItem(tableItem.code, tableItem.title, tableItem.description, tableItem.state)));
+        boards.map((tableItem) => result.push(renderTableItem(tableItem.code, tableItem.title, tableItem.description, tableItem.state)));
         return result;
     }
 
@@ -208,15 +245,17 @@ export default function TableList({socket}) {
             alert("Phải nhập đủ title và description");
             return;
         }
+        const newBoard = {
+            title: newTitle,
+            description: newDescription,
+            password: newPassword, time,
+            id_user1: JSON.parse(sessionStorage.currentuser)._id,
+            state: 1
+        };
 
-        const res = await dispatch(
-            addNewBoard(
-                {
-                    title: newTitle,
-                    description: newDescription,
-                    password: newPassword, time,
-                    id_user1: JSON.parse(sessionStorage.currentuser)._id
-                }));
+        socket.emit('create-table', [newBoard]);
+
+        const res = await dispatch(addNewBoard(newBoard));
 
         if (res.payload) {
             redirectToRoom(res.payload.code);
