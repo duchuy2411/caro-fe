@@ -29,7 +29,7 @@ export const UserList = (props) => {
                 <TextField source="username" />
                 <TextField source="email" />
                 <TextField source="displayname" label="Tên"/>
-                <EditButton/>
+                <EditButton label="Xem"/>
                 <BlockButton/>
             </Datagrid>
         </List>
