@@ -1,2 +1,2 @@
-const domain = 'http://localhost:8000';
-export default domain;
+const domain = 'http://caro-backend.herokuapp.com';
+export default domain;  

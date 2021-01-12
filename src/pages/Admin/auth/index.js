@@ -10,7 +10,7 @@ export default (type, params) => {
         //     headers: new Headers({ 'Content-Type': 'application/json' }),
         // })
 
-        return axios.post('http://localhost:8000/admin/auth', {username, password})
+        return axios.post('http://caro-be.herokuapp.com/admin/auth', {username, password})
             .then(response => {
                 if (response.status < 200 || response.status >= 300) {
                     throw new Error(response.statusText);

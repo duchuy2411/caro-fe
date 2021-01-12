@@ -59,6 +59,7 @@ function User() {
             try {
                 //let currentUsername = document.cookie.split('=')[1];
                 let currentUsername = Cookies.get(['currentUsername']);
+                console.log(currentUser);
                 if (currentUsername) {
                     const api = await axios.get("api/users/" + currentUsername);
                     const data = api.data.data;

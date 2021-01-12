@@ -14,7 +14,7 @@ const httpClient = (url, options = {}) => {
 }
 
 export default (props) => (
-    <Admin restClient={jsonServerRestClient('http://localhost:8000/admin', httpClient)} authClient={auth}>
+    <Admin restClient={jsonServerRestClient('http://caro-be.herokuapp.com/admin', httpClient)} authClient={auth}>
         <Resource name="users" list={UserList} show={UserShow} edit={UserEdit} icon={PeopleIcon}/>
         <Resource name='matches' list={MatchList} edit={MatchEdit}/>
     </Admin>
