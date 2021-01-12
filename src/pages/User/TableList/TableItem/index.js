@@ -11,7 +11,7 @@ import {
     boardUpdated
 } from '../../../../store/slice/boardsSlice';
 
-import { addGuest, addHost, addHostAndGuest } from '../../../../store/slice/playingUsersSlice';
+import { addGuest, addHost, addHostAndGuest, updateHostStatistic, updateGuestStatistic } from '../../../../store/slice/playingUsersSlice';
 
 import Game from '../../Game/index.js';
 
@@ -102,6 +102,7 @@ export default function TableItem({ socket }) {
     const [isTypePlay, setIsTypePlay] = useState(false);
     const [messageWin, setMessageWin] = useState();
     const [hostPlayerId, setHostPlayerId] = useState("");
+    const [guestPlayerId, setGuestPlayerId] = useState("");
     const [displayHandOver, setDisplayHandOver] = useState(false);
 
     const [canLeaveRoom, setCanLeaveRoom] = useState(true);
@@ -129,10 +130,10 @@ export default function TableItem({ socket }) {
                                 if (!board.id_user2)
                                     dispatch(addHostAndGuest({ hostUser: user1, guestUser: JSON.parse(sessionStorage.currentuser) }))
                                 setHostPlayerId(board.id_user1);
+                                setGuestPlayerId(JSON.parse(sessionStorage.currentuser)._id);
                             }
                         })
                         .catch(err => { })
-
                 }
                 console.log('join');
                 setTimeout(() => {
@@ -158,9 +159,11 @@ export default function TableItem({ socket }) {
                             const user2 = res.data.data.user;
                             dispatch(addGuest({ guestUser: user2 }));
                         }
+                        setGuestPlayerId(board.id_user2);
                     })
                     .catch(err => { })
             });
+            
         }
         // else if (socket && isJoin && !isHost) {
         //     dispatch(addGuest({ guestUser: JSON.parse(sessionStorage.currentuser) }))
@@ -184,6 +187,7 @@ export default function TableItem({ socket }) {
                 setIsWin(false);
                 setWinLine(null);
                 setHostPlayerId(user1._id);
+                setGuestPlayerId(user2._id);
                 setDisplayHandOver(true);
                 if (!isStart) setIsStart(true);
 
@@ -232,6 +236,15 @@ export default function TableItem({ socket }) {
                     console.log('ready');
                     setReadyStart(true);
                 }
+
+                // if (isHost) {
+                //     dispatch(updateHostStatistic(JSON.parse(sessionStorage.currentuser)._id));
+                //     dispatch(updateGuestStatistic(guestPlayerId));
+                // }
+                // else {
+                //     dispatch(updateHostStatistic(hostPlayerId));
+                //     dispatch(updateGuestStatistic(guestPlayerId));
+                // }
 
                 setCanLeaveRoom(true);
             });
@@ -302,6 +315,8 @@ export default function TableItem({ socket }) {
                     setIsHost(true);
                     dispatch(addHostAndGuest({ hostUser: JSON.parse(sessionStorage.currentuser), guestUser: null }));
                     setHostPlayerId(board.id_user1);
+                    setHostPlayer(null);
+                    setGuestPlayerId("");
                     setReadyStart(false);
                     //setCanPlay(true);
                 }
@@ -429,9 +444,12 @@ export default function TableItem({ socket }) {
                                 Miêu tả: {board ? board.description : 'etc'}
                             </Typography>
                             <Grid container style={{ marginBottom: '5px', marginLeft: '10px' }}>
-                                <Grid style={{ width: '70px', marginRight: '20px' }}>
+                                <Grid style={{ width: '90px', marginRight: '5px' }}>
                                     {isHost ? (
-                                        <Button onClick={() => { startGame(); setReadyStart(false) }} disabled={!readyStart} variant="contained" color="secondary">
+                                        <Button onClick={() => { 
+                                            startGame(); 
+                                            setReadyStart(false) 
+                                    }} disabled={!readyStart} variant="contained" color="secondary">
                                             Bắt đầu
                                         </Button>)
                                         : null}

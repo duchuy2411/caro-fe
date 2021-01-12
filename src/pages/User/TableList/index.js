@@ -165,6 +165,7 @@ export default function TableList({socket}) {
 
         if (socket) {
             socket.on('update-table', async function (newBoard) {
+                console.log('update table');
                 await dispatch(boardUpdated({ newBoard: newBoard }));
                 //setOnlineUserList(listOnline);
             });
@@ -253,13 +254,13 @@ export default function TableList({socket}) {
             state: 1
         };
 
-        socket.emit('create-table', [newBoard]);
-
         const res = await dispatch(addNewBoard(newBoard));
 
         if (res.payload) {
             redirectToRoom(res.payload.code);
         }
+
+        socket.emit('create-table', [newBoard.id_user1]);
 
         //tableList.push({id: "4", title: newTitle, description: newDescription});
         // fetch(URL + '/api/add-board/username/' + username + '/title/' + title + '/description/' + description)
@@ -428,7 +429,8 @@ export default function TableList({socket}) {
                     </Card>
                 </GridListTile>
 
-                {renderTableList()}
+                {boards.map((tableItem) => renderTableItem(tableItem.code, tableItem.title, tableItem.description, tableItem.state))}
+                {/* {renderTableList()} */}
 
             </GridList>
 

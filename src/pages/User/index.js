@@ -1,5 +1,6 @@
 import socketio from "socket.io-client"
-import axios from "axios"
+import axios  from "../../utils/axios";
+import domain  from "../../utils/domain";
 import { useState, useEffect } from "react"
 import { makeStyles } from '@material-ui/core/styles';
 import SignIn from '../../components/common/Header/SignIn';
@@ -59,11 +60,11 @@ function User() {
                 //let currentUsername = document.cookie.split('=')[1];
                 let currentUsername = Cookies.get(['currentUsername']);
                 if (currentUsername) {
-                    const api = await axios.get("http://localhost:8000/api/users/" + currentUsername);
+                    const api = await axios.get("api/users/" + currentUsername);
                     const data = api.data.data;
 
                     // Kết nối socket truyền vào iduser : _id và displayname là displayname
-                    const io = socketio('http://localhost:8000',
+                    const io = socketio(domain,
                         { query: `iduser=${data.user._id}&displayname=${data.user.displayname}` });
 
                     // Gán state socket = io để gọi lại ở useEffect bên dưới
@@ -106,7 +107,7 @@ function User() {
 
         //document.cookie = 'currentUsername=';
         Cookies.remove('currentUsername');
-        const data = await axios.get("http://localhost:8000/api/users/logout/" + currentUser._id);
+        const data = await axios.get("api/users/logout/" + currentUser._id);
         sessionStorage.setItem('currentuser', '');
         setCurrentUser(null);
 

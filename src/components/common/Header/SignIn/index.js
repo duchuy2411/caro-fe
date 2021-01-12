@@ -1,20 +1,18 @@
 import React, { useEffect, useState, useLocation } from 'react';
 import './index.css';
 import { Redirect } from 'react-router-dom';
-import axios from '../../../../utils/axios';
+import domain from '../../../../utils/domain';
 import Cookies from 'js-cookie';
-//import env from '../../env.json';
-//const URL = env.SERVER_DOMAIN_NAME;
-const URL = "http://localhost:8000";
+
 
 export default function SignIn() {
-    const signInWithUsernameAndPasswordPath = URL + "/api/users/login";
-    const signInWithGooglePath = URL + "/auth/google";
-    const signInWithFacebookPath = URL + "/auth/facebook";
+    const signInWithUsernameAndPasswordPath = domain + "/api/users/login";
+    const signInWithGooglePath = domain + "/auth/google";
+    const signInWithFacebookPath = domain + "/auth/facebook";
 
     const [isSignInSuccess, setIsSignInSuccess] = useState(false);
     useEffect(() => {
-        //fetch(URL + "/sign-in");
+
     }, []);
 
     const responseGoogle = (response) => {
@@ -59,7 +57,6 @@ export default function SignIn() {
                 <button class="social-signin facebook">
                     <a href={signInWithFacebookPath}>Sign in with facebook</a>
                 </button>
-                <button class="social-signin twitter">Sign in with Twitter</button>
                 <button class="social-signin google"> 
                     <a href={signInWithGooglePath}>Sign in with Google+</a>
                 </button>

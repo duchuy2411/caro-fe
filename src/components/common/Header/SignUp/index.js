@@ -2,13 +2,14 @@ import React, { useEffect, useState, useLocation } from 'react';
 import './index.css';
 import '../../../../utils/axios';
 import axios from '../../../../utils/axios';
+import domain from '../../../../utils/domain';
 import { Redirect } from 'react-router-dom';
-//import env from '../../env.json';
-//const URL = env.SERVER_DOMAIN_NAME;
-const URL = "http://localhost:8000";
 
 export default function SignUp() {
-    const path = URL + "/api/users";
+    const signInWithUsernameAndPasswordPath = domain + "/api/users/login";
+    const signInWithGooglePath = domain + "/auth/google";
+    const signInWithFacebookPath = domain + "/auth/facebook";
+    const path = domain + "/api/users";
     const [isSignUpSuccess, setIsSignUpSuccess] = useState(false);
     useEffect(() => {
 
@@ -82,9 +83,12 @@ export default function SignUp() {
             <div class="right">
                 <span class="loginwith" style={{color: 'black'}}>Sign in with<br />social network</span>
 
-                <button class="social-signin facebook">Sign in with facebook</button>
-                <button class="social-signin twitter">Sign in with Twitter</button>
-                <button class="social-signin google">Sign in with Google+</button>
+                <button class="social-signin facebook">
+                    <a href={signInWithFacebookPath}>Sign in with facebook</a>
+                </button>
+                <button class="social-signin google">
+                    <a href={signInWithGooglePath}>Sign in with Google+</a>
+                </button>
             </div>
             <div class="or">OR</div>
         </div>
