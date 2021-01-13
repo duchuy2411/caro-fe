@@ -3,6 +3,7 @@ import './index.css';
 import { Redirect } from 'react-router-dom';
 import domain from '../../../../utils/domain';
 import Cookies from 'js-cookie';
+import axios from '../../../../utils/axios';
 
 
 export default function SignIn() {
@@ -15,32 +16,49 @@ export default function SignIn() {
 
     }, []);
 
-    const responseGoogle = (response) => {
-        fetch("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + response.tokenId)
-        .then(res => res.text())
-        .then(res => {
-            alert(res);
-        })
-        .catch(err => err); 
+    const specialChars = "<>@!#$%^&*+{}?:;|()[]'\"\\,/~`= ";
+    function checkForSpecialChar(string) {
+    for(var i = 0; i < specialChars.length; i++) {
+        if(string.indexOf(specialChars[i]) > -1) {
+            return false
+        }
+    }
+        return true;
     }
 
-    // async function signIn() {
-    //     const username = document.getElementsByName("username")[0].value;
-    //     const password = document.getElementsByName("password")[0].value;
+    async function signIn() {
+        const username = document.getElementsByName("username")[0].value;
+        const password = document.getElementsByName("password")[0].value;
         
-    //     const api = await axios.post("api/users/login", {username, password});
+        if (username.length < 5 || username.length > 50) {
+            alert("Username phải từ 5 đến 50 kí tự");
+            return;
+        }
+        if (!checkForSpecialChar(username)) {
+            alert("Username không được chứa kí tự đặc biệt và khoảng trắng");
+            return;
+        }
+        if (password.length < 6) {
+            alert("Password phải từ 6 kí tự trở lên");
+            return;
+        }
+
+        const api = await axios.post("api/users/login", {username, password});
         
-    //     if (api.data.data) {
-    //         Cookies.set('currentUsername', api.data.data.username, {expires: 0.05});
-    //         setIsSignInSuccess(true);
-    //     }
-    // }
-    // if (isSignInSuccess)
-    //     window.location.href = "/";
+        if (api.data.data) {
+            Cookies.set('currentUsername', api.data.data.username, { expires: 0.05 });
+            setIsSignInSuccess(true);
+        }
+        else {
+            alert('Sai mật khẩu');
+        }
+    }
+    if (isSignInSuccess)
+        window.location.href = "/";
 
     return (
         <div id="login-box" style={{background: 'lavender', marginBottom: '0px'}}>
-            <form action={signInWithUsernameAndPasswordPath} method="post" class="left">
+            <form onSubmit={(e) => {e.preventDefault(); signIn(); }} method="post" class="left">
                 <h1>SIGN IN</h1>
 
                 <input type="text" name="username" placeholder="Username" />
