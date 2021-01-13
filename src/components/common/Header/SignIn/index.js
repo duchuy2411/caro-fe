@@ -44,13 +44,12 @@ export default function SignIn() {
         }
 
         const api = await axios.post("api/users/login", {username, password});
-        
-        if (api.data.data) {
+        if (api.data.message === "Account is blocked") {
+            alert("Account is blocked");
+        }
+        else if (api.data.data) {
             Cookies.set('currentUsername', api.data.data.username, { expires: 0.05 });
             setIsSignInSuccess(true);
-        }
-        else {
-            alert('Sai mật khẩu');
         }
     }
     if (isSignInSuccess)
